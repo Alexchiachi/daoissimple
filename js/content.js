@@ -33,11 +33,13 @@ const DaoSanctuaryData = {
       bookingCalendarUrl: "https://alexchiachi.github.io/happy/inner-flow/",
       githubRepo: "https://github.com/Alexchiachi/daoissimple"
     },
+    api: {
+      // Cloudflare Worker 網址：道童對話 (/chat) 與表單送達 (/booking) 共用，部署步驟見 worker/README.md
+      // 留空時：道童走本地智庫，問道之鏡與花瓣預約顯示手動傳送備援（不遺失客人回答）
+      workerUrl: ""
+    },
     gemini: {
-      // 雲端託管密鑰（採用客戶端安全組裝，防護 GitHub Secret Protection 靜態誤攔截）
-      defaultKey: (typeof atob === 'function')
-        ? atob("QVEuQWI4Uk42SXU1QnYyQk5OOXpkMlBkOHlhTVRzVXZlNG85VUNyeFgyQ0NFM2gxWmlQVnc=")
-        : (typeof Buffer !== 'undefined' ? Buffer.from("QVEuQWI4Uk42SXU1QnYyQk5OOXpkMlBkOHlhTVRzVXZlNG85VUNyeFgyQ0NFM2gxWmlQVnc=", "base64").toString("utf-8") : ""),
+      // 僅供 ?dev=1 開發者模式直連使用，金鑰一律不得寫入本倉庫
       model: "gemini-flash-latest"
     }
   },

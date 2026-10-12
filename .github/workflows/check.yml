@@ -17,10 +17,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - run: pip install opencc-python-reimplemented
       - name: Build Simplified Chinese version
         run: python tools/build_zhcn.py
       - name: Check design and content rules
         run: python tools/check.py
+      - name: Syntax check frontend
+        run: node --check js/app.js
+      - name: Test Cloudflare Worker
+        run: node --test worker/index.test.mjs
       - name: Verify zh-cn is up to date
         run: git diff --exit-code -- zh-cn/index.html
