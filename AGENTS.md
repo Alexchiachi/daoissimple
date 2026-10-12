@@ -119,7 +119,9 @@ daoissimple/
    ```bash
    python3 tools/push.py "語意 Commit 訊息"
    ```
-5. **重大決策記錄（最高鐵律）**：
-   * 若商業模式、產品定價、視覺美感規範或網站核心架構有重大變更，**必須同步在本 `AGENTS.md`、`DESIGN.md` 以及 `CHANGELOG_AI.md` 追加一筆演進記錄**！
+5. **重大改變開 PR 與記錄鐵律（最高規範）**：
+   * 若商業模式、產品定價、道童活體心智架構、API 金鑰託管或網站核心架構有重大變更，**一律嚴禁直接盲推 main**！
+   * **必須建立專屬 Feature 分支並開立 Pull Request (PR)**，在 PR 說明中寫清楚變更原由、技術架構、影響範圍與自檢結果。
+   * **必須同步在 `CHANGELOG_AI.md` 追加一筆演進紀錄**，並更新 `AGENTS.md`、`DAO_BOY_GEMINI_STANDARD.md`。
    * 目的：確保下一次對話的 AI 或不同 AI 工具能在 1 秒內完全掌握建置脈絡與演進歷史，嚴禁遺失主理人的核心哲學與美學防線。
 

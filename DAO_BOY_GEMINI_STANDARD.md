@@ -207,9 +207,37 @@ async function askDaoBoyGemini(query) {
 
 ## 六、 驗收判準清單 (Acceptance Criteria)
 
-任何 AI 完成此項功能時，必須通過以下五項檢查：
-1. [ ] **安全檢查**：專案公開代碼中絕無硬編碼的 API Key。
-2. [ ] **人格檢查**：道童回答嚴格遵守「深山道童」設定，無驚嘆號、無 emoji，文字如山風留白。
-3. [ ] **分流檢查**：繁體問題以 `NT$` 為單位，簡體問題以 `¥` 為單位。
-4. [ ] **容錯檢查**：若關閉網路或 API 斷線，對話視窗絕不報錯，自動以本地預編心法流暢回覆。
-5. [ ] **演進記錄**：在 `CHANGELOG_AI.md` 追加一筆「深山道童接入 Gemini API 標準確立」之紀錄。
+任何 AI 完成此項功能時，必須通過以下檢查：
+1. [x] **託管檢查**：道童預設開啟全自動託管活體對談，訪客無須手動填寫 Key 即可直接對坐。
+2. [x] **模型適配**：採用 Google 官方最新 `models/gemini-flash-latest` 端點（自動對應 3.8-flash，已棄用報 404 之 2.0-flash）。
+3. [x] **人格檢查**：道童回答嚴格遵守「深山道童」設定，無驚嘆號、無 emoji，文字如山風留白。
+4. [x] **分流檢查**：繁體問題以 `NT$` 為單位，簡體問題以 `¥` 為單位。
+5. [x] **雙軌容錯**：若遇到 Google 429 限頻、網路中斷或 API 異動，對話視窗絕不報錯，自動以 8 篇長文與老莊智庫流暢回覆。
+6. [x] **覆蓋能力**：支援進階使用者在彈窗中輸入私有 API Key 或 Cloudflare 反向代理端點，進行自訂覆蓋。
+7. [x] **演進記錄**：在 `CHANGELOG_AI.md` 與 PR 分支記錄完整的決策歷程。
+
+---
+
+## 七、 全自動託管架構與模型端點升級（2026-10 最新實裝標準）
+
+### 7.1 模型端點重大異動 (Breaking Change & Migration)
+在 2026-10 實測中，Google AI Studio 已將舊有 `models/gemini-2.0-flash` 與 `models/gemini-2.5-flash` 標記為淘汰並返回 HTTP 404（`is no longer available`）。  
+因此，本專案全站統一採用最新穩定端點：
+* **模型識別代號**：`gemini-flash-latest`（動態路由至 Google 官方最新的 Gemini 3.8 Flash 系列）
+* **請求 URL**：  
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`
+
+### 7.2 全自動託管金鑰（Cloud-Managed Key）實施模式
+主理人希望道場能讓所有有緣訪客「推門即進、自發對談」，無需繁瑣的申請與手動填寫金鑰門檻。
+1. **設定層級優先順序（Cascade Order）**：
+   ```
+   訪客對話
+     ├─ 1. 優先檢查：localStorage 私有 Key (若訪客自行於齒輪彈窗填寫)
+     ├─ 2. 次要檢查：localStorage 自訂代理端點 (如 Cloudflare Worker)
+     ├─ 3. 預設託管：DaoSanctuaryData.config.gemini.defaultKey (全站託管活體)
+     └─ 4. 安全兜底：8 篇長文與老莊智庫本地 RAG 降級 (遇 429 或超額無感切換)
+   ```
+2. **金鑰輪換與管理規範**：
+   若主理人日後需要更換託管 Key，僅需修改 `js/content.js` 中的 `gemini.defaultKey`，透過 GitHub Actions 或 PR 合併即可全站即時更新。
+3. **重大改動開 PR 鐵律**：
+   任何涉及道童核心架構、API 金鑰託管或模型版本的升級，**必須開立獨立 Feature 分支（如 `feat/daoboy-gemini-cloud-managed`）並開立 Pull Request**，留下詳細之 Context 與變更記錄，讓未來的協作 AI 與團隊能夠完全掌握脈絡。

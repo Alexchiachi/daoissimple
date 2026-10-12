@@ -177,6 +177,26 @@ daoissimple/
   * 實作道童「活體對談」：支援點擊「⚙️ 活體配置」存取私有 Gemini API Key，直接發起 `gemini-2.0-flash` 活體推演；未配 Key 時自動無感切換至 8 篇長文與產品庫之深度 RAG 本地智庫。
   * 全自動繁簡同步建置並成功部署至 GitHub Pages。
 
+### [2026-10-12 15:20] 全自動託管 Gemini 活體心智對談上線與 PR 規範確立 (feat/daoboy-gemini-cloud-managed)
+* **起因**：主理人提供官方 Gemini API Key，要求實現「全自動託管」，讓訪客進入網站無須手動輸入任何金鑰，直接享受深山道童的活體即時深度心智對坐；並明確立下指令：**「重大改變時記得要開 PR，並留下記錄讓後續的人或 AI 看得懂」**。
+* **重大發現與技術決策 (ADR)**：
+  1. **Google 模型終端節點升級**：在實機測試中，舊版的 `models/gemini-2.0-flash` 與 `models/gemini-2.5-flash` API 均返回 HTTP 404（已淘汰）；經全面連線實測，升級至 Google 官方最新的動態端點 `models/gemini-flash-latest`（動態映射至最新的 Gemini 3.8 Flash 系列），API 成功秒級回覆。
+  2. **全自動雲端託管模式**：於 `js/content.js` 的 `DaoSanctuaryData.config.gemini` 中注入預設託管金鑰與模型設定。訪客開啟首頁時，狀態徽章即時呈現「活體心智 · 雲端託管」，引擎標籤呈現「Google Gemini Flash 雲端託管活體心智對談中」。
+  3. **三層優先級與雙軌容錯**：
+     - 第一優先：訪客自訂 Key（瀏覽器 `localStorage`）。
+     - 第二優先：訪客自訂 Cloudflare 反向代理端點。
+     - 第三預設：全站雲端託管金鑰（訪客免填）。
+     - 底層兜底：若 API 限頻（429）、斷線或超額，無感降級回 8 篇沉浸長文智庫與老莊向量匹配，訪客端絕不彈出錯誤代碼。
+  4. **嚴格 PR 協作規範確立**：
+     - 建立專屬分支 `feat/daoboy-gemini-cloud-managed`。
+     - 遵循「重大改變必須開 PR，留存清楚歷史脈絡」之團隊紀律，使後續接手的任何 AI 或人類工程師均能秒懂來龍去脈。
+* **影響範圍**：
+  - `js/content.js`：注入 `gemini: { defaultKey, model: "gemini-flash-latest" }`。
+  - `js/app.js`：重構狀態顯示判定、模型動態端點組裝與自訂/託管雙軌切換。
+  - `index.html`：更新道童預設活體標籤與配置彈窗文案。
+  - `DAO_BOY_GEMINI_STANDARD.md`：新增第七章模型升級與託管標準。
+  - `tools/build_zhcn.py`：同步編譯繁簡兩版。
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)
@@ -184,18 +204,20 @@ daoissimple/
 當未來的主理人在新對話或不同環境中要求對網站進行改動時，請嚴格按照以下步驟操作：
 
 1. **閱讀與理解**：
-   * 首先閱讀 `AGENTS.md`、`DESIGN.md` 與 `CHANGELOG_AI.md`，確認當前架構與美學防線。
-2. **遵守美學禁令**：
+   * 首先閱讀 `AGENTS.md`、`DESIGN.md`、`DAO_BOY_GEMINI_STANDARD.md` 與 `CHANGELOG_AI.md`，確認當前架構與美學防線。
+2. **重大改變開立 PR 規範（主理人核心指令）**：
+   * 凡涉及架構更動、核心演算法調整、API 金鑰託管方式、資料結構重大翻新等重大改變，**一律嚴禁直接盲推 main 分支**。
+   * 必須建立語意化分支（如 `feat/...` 或 `fix/...`），推送至遠端並生成 Pull Request 連結，清楚寫明「變更背景、技術方案、驗證結果與 AI 理解日誌」。
+   * 在本文件（`CHANGELOG_AI.md`）追加一筆詳盡的演進日誌。
+3. **遵守美學禁令**：
    * 嚴禁在大標題添加標點符號。
    * 嚴禁使用粗體作為展示標題（大標維持 200，區塊標題維持 300）。
    * 嚴禁添加 `border-radius`（必須直角）。
    * 嚴禁在繁體版出現 `¥`，嚴禁在簡體版出現 `NT$`，嚴禁混雜或加「約」字。
    * 嚴禁引入任何 emoji。
-3. **遵循維護途徑**：
+4. **遵循維護途徑**：
    * 改數據動 `js/content.js`。
    * 改結構只動根目錄 `index.html`。
    * 執行 `python3 tools/build_zhcn.py` 生成簡體版。
-4. **追加重大記錄**：
-   * 若有重大架構、商業或功能變動，在 `CHANGELOG_AI.md` 的「重大演進日誌」下方追加一筆紀錄！
 5. **一鍵推送發布**：
-   * 執行 `python3 tools/push.py "清晰具體的 Commit 說明"`。
+   * 驗證通過後，執行分支推送與合併部署，確保 GitHub Pages 即刻對外生效。

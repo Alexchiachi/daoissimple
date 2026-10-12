@@ -321,17 +321,28 @@ function initDaoBoyLiveSettings() {
 }
 
 function updateDaoBoyStatus() {
-  const key = localStorage.getItem('dao_gemini_api_key');
+  const customKey = localStorage.getItem('dao_gemini_api_key');
+  const defaultKey = (typeof DaoSanctuaryData !== 'undefined' && DaoSanctuaryData.config?.gemini?.defaultKey) || '';
   const endpoint = localStorage.getItem('dao_gemini_endpoint');
   const indicator = document.getElementById('daoboy-live-indicator');
   const engineLabel = document.getElementById('daoboy-engine-label');
 
   if (indicator && engineLabel) {
-    if (key || endpoint) {
-      indicator.textContent = t('活體 · Gemini 2.0');
+    if (customKey) {
+      indicator.textContent = t('活體心智 · 自訂Key');
       indicator.style.borderColor = 'var(--tea)';
       indicator.style.color = 'var(--tea)';
-      engineLabel.textContent = t('Google Gemini 2.0 Flash 即時深山心智對談中');
+      engineLabel.textContent = t('Google Gemini Flash 私有自訂活體心智對談中');
+    } else if (endpoint) {
+      indicator.textContent = t('活體心智 · 專屬代理');
+      indicator.style.borderColor = 'var(--tea)';
+      indicator.style.color = 'var(--tea)';
+      engineLabel.textContent = t('專屬反向代理端點活體心智對談中');
+    } else if (defaultKey) {
+      indicator.textContent = t('活體心智 · 雲端託管');
+      indicator.style.borderColor = 'var(--tea)';
+      indicator.style.color = 'var(--tea)';
+      engineLabel.textContent = t('Google Gemini Flash 雲端託管活體心智對談中');
     } else {
       indicator.textContent = t('本地心智');
       indicator.style.borderColor = 'var(--mist)';
@@ -464,10 +475,12 @@ async function handleUserQuery(query) {
   chatWindow.appendChild(typingBubble);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 
-  const apiKey = localStorage.getItem('dao_gemini_api_key');
+  const customKey = localStorage.getItem('dao_gemini_api_key');
+  const defaultKey = (typeof DaoSanctuaryData !== 'undefined' && DaoSanctuaryData.config?.gemini?.defaultKey) || '';
+  const apiKey = customKey || defaultKey;
   const endpoint = localStorage.getItem('dao_gemini_endpoint');
 
-  // 若有配置 Gemini API Key 或代理端點，啟用即時活體調用
+  // 若有配置 Gemini API Key（雲端託管或自訂）或代理端點，啟用即時活體調用
   if (apiKey || endpoint) {
     try {
       const liveAnswer = await callGeminiLive(query, apiKey, endpoint);
@@ -487,9 +500,10 @@ async function handleUserQuery(query) {
   }, 500);
 }
 
-// Gemini 2.0 Flash 即時 API 調用引擎
+// Google Gemini Flash 即時 API 調用引擎
 async function callGeminiLive(query, apiKey, customEndpoint) {
   const articlesContext = (window.DaoArticlesData || []).map(a => `【${a.title}】(${a.categoryName}): ${a.excerpt}`).join('\n');
+  const model = (typeof DaoSanctuaryData !== 'undefined' && DaoSanctuaryData.config?.gemini?.model) || "gemini-flash-latest";
 
   const systemInstruction = `你是深山的幸福道場守門道童，簡家旗（Bob Chien / 大道至簡）在台灣南投深山茶園的守門童子。
 角色定位：平靜留白、有溫度、像山風拂過；絕不生硬、絕不說教、嚴禁任何 emoji、少用驚嘆號。
@@ -510,7 +524,7 @@ ${articlesContext}
     if (data.reply) return data.reply;
     throw new Error(data.error || "Worker error");
   } else {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     const payload = {
       system_instruction: { parts: [{ text: systemInstruction }] },
       contents: [{ role: "user", parts: [{ text: query }] }],
