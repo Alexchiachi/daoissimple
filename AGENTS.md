@@ -87,6 +87,7 @@ daoissimple/
 ├── CLAUDE.md                    # AI 工具指令對齊指南
 ├── DESIGN.md                    # 視覺與美學規範事實表
 ├── CHANGELOG_AI.md              # 建置歷程、架構決策 (ADR) 與重大演進歷史
+├── DAO_BOY_GEMINI_STANDARD.md   # 深山道童接入 Gemini API 技術與提示詞規範
 ├── README.md                    # 專案公開說明手冊
 ├── index.html                   # 繁體中文版主頁（單一維護正本）
 ├── zh-cn/index.html             # 大陸簡體版（由 tools/build_zhcn.py 自動生成）

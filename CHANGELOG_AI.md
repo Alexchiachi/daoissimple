@@ -161,6 +161,13 @@ daoissimple/
   * 修復 `tools/build_zhcn.py` 繁簡切換按鈕對齊 `.lang-switch-btn` 且去除 emoji。
   * 達成效果：主理人未來即便直接在手機端透過 GitHub App 編輯 `js/content.js`，雲端 CI/CD 會全自動編譯簡體版並發布上線，徹底解放手動編譯依賴。
 
+### [2026-10-12 14:45] 深山道童接入 Gemini API 標準技術規範確立
+* **起因**：主理人詢問「道童的對話核心可以接入 Gemini API 嗎？免費額度應該夠的，寫一份標準給 AI」。
+* **動作**：
+  * 確立模型選型為 `gemini-2.0-flash`，分析確認 Google AI Studio 每日 1,500 次免費額度（RPM 15 / TPM 1M）完全足夠一人公司道場門戶零成本自轉。
+  * 建立 `DAO_BOY_GEMINI_STANDARD.md`：完整制定系統提示詞（System Instruction）、零成本 Cloudflare Worker 安全反向代理代碼、前端雙軌無感降級架構（429超額/斷線時自動退回本地 `content.js` 心法）。
+  * 同步在 `AGENTS.md`、`CLAUDE.md`、`README.md` 建立索引，保障未來任何 AI 接手時不會洩漏金鑰且能無縫實作。
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)

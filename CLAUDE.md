@@ -5,6 +5,7 @@
 - 完整的專案背景、商業架構與維護指南請先讀 [`AGENTS.md`](AGENTS.md)。
 - 視覺規範、色票與字體排印規範請嚴格遵守 [`DESIGN.md`](DESIGN.md)。
 - 完整的建置脈絡、架構決策 (ADR) 與演進日誌請讀 [`CHANGELOG_AI.md`](CHANGELOG_AI.md)。
+- 深山道童接入 Gemini API 規範請讀 [`DAO_BOY_GEMINI_STANDARD.md`](DAO_BOY_GEMINI_STANDARD.md)。
 - **重大改變鐵律**：任何重大改變均需寫入 `CHANGELOG_AI.md`，供後續 AI 快速接軌。
 - **標題一律去除標點符號**，置中行必須加上 `margin-right: -0.15em` 抵銷 `letter-spacing`。
 - **貨幣符號嚴格分流**：繁體中文主頁一律使用 `NT$`，簡體中文版一律使用 `¥`。
