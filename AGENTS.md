@@ -111,7 +111,10 @@ daoissimple/
 ├── DAO_BOY_GEMINI_STANDARD.md   # 深山道童接入 Gemini API 技術與提示詞規範
 ├── README.md                    # 專案公開說明手冊
 ├── index.html                   # 繁體中文版主頁（單一維護正本）
-├── zh-cn/index.html             # 大陸簡體版（由 tools/build_zhcn.py 自動生成）
+├── zh-cn/                       # 大陸簡體版（全部由 tools/build_zhcn.py 自動生成，切勿手改）
+│   ├── index.html               #   由 index.html 轉換
+│   ├── content.js / articles.js #   由 js/content.js、js/articles.js 轉換（移除 twPrice）
+│   └── app.js                   #   由 js/app.js 轉換（介面文字與道童關鍵字也是簡體）
 ├── css/style.css                # 侘寂紙墨美學專屬樣式表
 ├── js/
 │   ├── content.js               # 單一數據真理源（四大花心、花瓣香氣、俗人對話錄）
@@ -132,7 +135,8 @@ daoissimple/
 1. **修改內容/定價**：
    * 編輯 `js/content.js`（確保 `twPrice` 為 `NT$`、`cnPrice` 為 `¥`）。
 2. **修改 HTML/結構**：
-   * 僅修改根目錄 `index.html`，**切勿手動修改 `zh-cn/index.html`**。
+   * 僅修改根目錄 `index.html`，**切勿手動修改 `zh-cn/` 底下任何檔案**（含 `zh-cn/*.js`，皆為編譯結果）。
+   * 改 `js/app.js`、`js/content.js`、`js/articles.js` 後同樣要重新建置，CI 會比對 `zh-cn/` 是否與建置結果一致。
 3. **執行繁簡同步與建置**：
    ```bash
    python3 tools/build_zhcn.py
