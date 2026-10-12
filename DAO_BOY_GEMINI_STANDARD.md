@@ -96,7 +96,7 @@ Google AI Studio 為 Gemini 提供極為充裕的**免費級別（Free Tier）**
 
 ---
 
-## 四、 零成本 Cloudflare Worker 代理代碼標準 (參考實作)
+## 四、 零成本 Cloudflare Worker 代理代碼標準 (歷史參考實作，現行版本見 `worker/index.mjs`)
 
 接手 AI 或維護者可在 Cloudflare Workers 貼上以下標準腳本（免費部署，耗時 2 分鐘）：
 
@@ -208,12 +208,12 @@ async function askDaoBoyGemini(query) {
 ## 六、 驗收判準清單 (Acceptance Criteria)
 
 任何 AI 完成此項功能時，必須通過以下檢查：
-1. [x] **託管檢查**：道童預設開啟全自動託管活體對談，訪客無須手動填寫 Key 即可直接對坐。
+1. [x] **託管檢查**：道童預設透過 Cloudflare Worker 活體對談，訪客無須填寫 Key；金鑰只存在 Worker Secret，前端與 git 內不得出現。
 2. [x] **模型適配**：採用 Google 官方最新 `models/gemini-flash-latest` 端點（自動對應 3.8-flash，已棄用報 404 之 2.0-flash）。
 3. [x] **人格檢查**：道童回答嚴格遵守「深山道童」設定，無驚嘆號、無 emoji，文字如山風留白。
 4. [x] **分流檢查**：繁體問題以 `NT$` 為單位，簡體問題以 `¥` 為單位。
 5. [x] **雙軌容錯**：若遇到 Google 429 限頻、網路中斷或 API 異動，對話視窗絕不報錯，自動以 8 篇長文與老莊智庫流暢回覆。
-6. [x] **覆蓋能力**：支援進階使用者在彈窗中輸入私有 API Key 或 Cloudflare 反向代理端點，進行自訂覆蓋。
+6. [x] **覆蓋能力**：開發者可於 `?dev=1` 在彈窗輸入私有 API Key 或自訂代理端點除錯，一般訪客看不到此入口。
 7. [x] **演進記錄**：在 `CHANGELOG_AI.md` 與 PR 分支記錄完整的決策歷程。
 
 ---
@@ -227,17 +227,25 @@ async function askDaoBoyGemini(query) {
 * **請求 URL**：  
   `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`
 
-### 7.2 全自動託管金鑰（Cloud-Managed Key）實施模式
-主理人希望道場能讓所有有緣訪客「推門即進、自發對談」，無需繁瑣的申請與手動填寫金鑰門檻。
-1. **設定層級優先順序（Cascade Order）**：
+### 7.2 金鑰託管：Cloudflare Worker（2026-10-12 起的現行標準）
+先前版本曾將 Gemini 金鑰以 base64 內嵌在 `js/content.js`（`gemini.defaultKey`）。這等於公開金鑰：base64 只能躲過 GitHub 掃描，任何訪客都能解開並盜用額度，而且舊值仍留在 git 歷史中。**該做法已廢除，`tools/check.py` 會在 CI 擋下任何 `defaultKey`、`atob(`、`AIza…` 或 URL query 帶 `?key=` 的程式碼。**
+
+現行架構：
+```
+訪客瀏覽器 ──POST /chat──► Cloudflare Worker ──x-goog-api-key──► Gemini
+                           (GEMINI_API_KEY 存在 Worker Secret)
+```
+1. **實作位置**：`worker/index.mjs`（含測試 `worker/index.test.mjs`，部署步驟見 `worker/README.md`）。同一個 Worker 另有 `POST /booking`，負責問道之鏡與花瓣預約的送達。
+2. **前端設定**：只需在 `js/content.js` 填 `config.api.workerUrl`。留空時道童自動走本地智庫。
+3. **設定層級優先順序**（`js/app.js`）：
    ```
    訪客對話
-     ├─ 1. 優先檢查：localStorage 私有 Key (若訪客自行於齒輪彈窗填寫)
-     ├─ 2. 次要檢查：localStorage 自訂代理端點 (如 Cloudflare Worker)
-     ├─ 3. 預設託管：DaoSanctuaryData.config.gemini.defaultKey (全站託管活體)
-     └─ 4. 安全兜底：8 篇長文與老莊智庫本地 RAG 降級 (遇 429 或超額無感切換)
+     ├─ 1. 開發者模式 (?dev=1)：localStorage 自訂代理端點
+     ├─ 2. 開發者模式 (?dev=1)：localStorage 個人 Key（以 header 直連，金鑰不進 URL）
+     ├─ 3. 站方 Worker：config.api.workerUrl
+     └─ 4. 本地智庫：遇 429、逾時（20 秒）、未設 Worker 時無感降級
    ```
-2. **金鑰輪換與管理規範**：
-   若主理人日後需要更換託管 Key，僅需修改 `js/content.js` 中的 `gemini.defaultKey`，透過 GitHub Actions 或 PR 合併即可全站即時更新。
-3. **重大改動開 PR 鐵律**：
-   任何涉及道童核心架構、API 金鑰託管或模型版本的升級，**必須開立獨立 Feature 分支（如 `feat/daoboy-gemini-cloud-managed`）並開立 Pull Request**，留下詳細之 Context 與變更記錄，讓未來的協作 AI 與團隊能夠完全掌握脈絡。
+   齒輪設定入口預設隱藏，網址加 `?dev=1` 才顯示，一般訪客看不到金鑰輸入框。
+4. **提示詞**：以 Worker 內的 `buildSystemInstruction` 為準（含語系分流、定價、邊界與防提示詞注入）。前端只送 `prompt`、近期 `history`（最多 8 則）、`lang` 與長文篇名清單；Worker 會截斷長度並丟棄不合法角色。
+5. **金鑰輪換**：`npx wrangler secret put GEMINI_API_KEY`，無須改任何程式碼或重新部署網站。
+6. **重大改動開 PR 鐵律**：任何涉及道童核心架構、API 金鑰託管或模型版本的升級，**必須開立獨立 Feature 分支並開立 Pull Request**，留下詳細之 Context 與變更記錄。

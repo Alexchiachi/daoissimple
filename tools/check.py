@@ -142,17 +142,22 @@ def check_html_integrity():
 
 
 def check_secrets():
-    """已知風險先以警告提示，不阻擋發布；修復後請改為 errors。"""
+    """金鑰一律不得進入公開倉庫：道童走 Cloudflare Worker，見 worker/README.md"""
     content = read("js/content.js")
-    if re.search(r"defaultKey\s*:", content) and "atob(" in content:
-        warnings.append(
-            "js/content.js：Gemini 金鑰以 base64 內嵌於公開前端（defaultKey + atob）。"
-            "請撤銷輪換並改用 Cloudflare Worker 代理，見 DAO_BOY_GEMINI_STANDARD.md §2.1"
-        )
-    for name in ("index.html", "js/app.js", "js/articles.js"):
+    for m in re.finditer(r"defaultKey\s*:|atob\(|Buffer\.from\(", content):
+        fail("js/content.js", content, m.start(), "疑似內嵌金鑰（defaultKey / atob），金鑰必須留在 Worker Secret")
+    for name in ("index.html", "zh-cn/index.html", "js/app.js", "js/content.js", "js/articles.js"):
         text = read(name)
-        for m in re.finditer(r"AIza[0-9A-Za-z_\-]{30,}", text):
+        for m in re.finditer(r"AIza[0-9A-Za-z_\-]{30,}|AQ\.[0-9A-Za-z_\-]{30,}", text):
             fail(name, text, m.start(), "疑似 Google API 金鑰明文")
+        for m in re.finditer(r"generativelanguage\.googleapis\.com[^`'\"]*\?key=", text):
+            fail(name, text, m.start(), "金鑰不可放在 URL query，請用 x-goog-api-key header")
+
+
+def check_no_alert():
+    app = read("js/app.js")
+    for m in re.finditer(r"(?<![.\w])alert\(", app):
+        fail("js/app.js", app, m.start(), "禁止侵入式 alert()，請改用內嵌狀態微反饋")
 
 
 def main():
@@ -162,6 +167,7 @@ def main():
     check_css()
     check_html_integrity()
     check_secrets()
+    check_no_alert()
 
     for w in warnings:
         print(f"警告  {w}")

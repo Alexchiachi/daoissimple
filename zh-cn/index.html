@@ -164,7 +164,7 @@
               </div>
             </div>
             <div class="daoboy-header-actions">
-              <button id="daoboy-gear-btn" class="daoboy-gear-btn" onclick="openDaoBoyModal()" title="活体心智配置">活体配置</button>
+              <button id="daoboy-gear-btn" class="daoboy-gear-btn" onclick="openDaoBoyModal()" title="活体心智配置" style="display: none;">活体配置</button>
             </div>
           </div>
 
@@ -222,9 +222,11 @@
               <textarea id="mirror-q3" class="mirror-textarea" required placeholder="定价即承诺。我们不提供廉价快餐咨询，只服务清醒交付转化者。"></textarea>
             </div>
 
-            <button type="submit" class="btn-cta" style="width: 100%; padding: 14px;">
+            <input type="text" id="mirror-website" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0;">
+            <button type="submit" class="btn-cta" id="mirror-submit-btn" style="width: 100%; padding: 14px;">
               映照内心 打开预约通道 →
             </button>
+            <div id="mirror-submit-status" class="code-copy-status" role="status" aria-live="polite" style="margin-top: 10px; text-align: center;"></div>
             <p style="font-size: 0.82rem; color: var(--mist); text-align: center; margin-top: 10px; text-wrap: pretty;">
               <span class="ph">不急，慢慢写。</span><span class="ph">我们只服务清醒交付转化者。</span><span class="ph">送出后即派发结缘通关码。</span>
             </p>
@@ -243,6 +245,10 @@
                 <button type="button" class="btn-copy-code" id="btn-copy-booking" onclick="copyBookingCode()">复制通关码</button>
               </div>
               <div id="booking-code-tip" class="code-copy-status"></div>
+              <div id="mirror-delivery-status" class="code-copy-status" role="status" aria-live="polite" style="margin: 10px 0; text-wrap: pretty;"></div>
+              <div id="mirror-manual-actions" style="display: none; margin-bottom: var(--s-2);">
+                <button type="button" class="contact-sub-btn primary" onclick="copyMirrorManual(this)">复制我的回答</button>
+              </div>
               <p style="color: var(--mist); font-size: 0.88rem; text-wrap: pretty;">
                 <span class="ph">请凭此通关码</span><span class="ph">选择您方便的连系管道</span><span class="ph">锁定专属对话时段：</span>
               </p>
@@ -267,7 +273,7 @@
                   <div class="value">@473nnjul</div>
                   <div class="desc"><span class="ph">最即时的对话通道，</span><span class="ph">加好友直接回传通关码</span></div>
                   <div class="contact-card-actions">
-                    <a class="contact-sub-btn primary" href="https://line.me/R/ti/p/@473nnjul" target="_blank" rel="noopener">加 LINE 洽询</a>
+                    <a class="contact-sub-btn primary" id="mirror-line-btn" href="https://line.me/R/ti/p/@473nnjul" target="_blank" rel="noopener">加 LINE 洽询</a>
                     <button type="button" class="contact-sub-btn" onclick="copyText('@473nnjul', this)">复制 ID</button>
                   </div>
                 </div>
@@ -279,7 +285,7 @@
                   <div class="value"><a href="mailto:dadaoissimple@gmail.com" style="color: inherit; text-decoration: underline;">dadaoissimple@gmail.com</a></div>
                   <div class="desc"><span class="ph">写一封信来，不急慢慢写，</span><span class="ph">我们会慢慢看、慢慢回</span></div>
                   <div class="contact-card-actions">
-                    <a class="contact-sub-btn" href="mailto:dadaoissimple@gmail.com">写一封信</a>
+                    <a class="contact-sub-btn" id="mirror-mail-btn" href="mailto:dadaoissimple@gmail.com">写一封信</a>
                     <button type="button" class="contact-sub-btn" onclick="copyText('dadaoissimple@gmail.com', this)">复制信箱</button>
                   </div>
                 </div>
@@ -420,8 +426,8 @@
         <span class="eyebrow">Google Gemini Flash</span>
         <h3 style="margin-top: 6px; font-weight: 300;">深山道童 · 活体心智配置</h3>
         <p style="font-size: 0.88rem; color: var(--ink-soft); line-height: 1.8; margin-top: 10px;">
-          道童默认已打开<strong>全自动云端托管活体心智</strong>，访客可免密钥直接对话。<br>
-          若您想使用个人的 Google AI Studio API Key 或专属代理端点，亦可在下方输入覆盖。
+          此为开发者调试入口（网址加上 ?dev=1 才会显示）。道童缺省通过云端代理对话，访客不需要任何密钥。<br>
+          测试时可在下方输入个人的 Google AI Studio API Key 或其他代理端点，仅保存于本机浏览器。
         </p>
 
         <div style="margin-top: var(--s-3);">

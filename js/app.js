@@ -317,39 +317,45 @@ window.askDaoBoyAboutArticle = function(title) {
 // 4. 守門道童問答 (本地智庫 + Gemini 2.0 活體對談)
 // ==========================================
 function initDaoBoyLiveSettings() {
+  // 金鑰/代理設定只給開發者除錯：網址加 ?dev=1 才顯示齒輪
+  const gear = document.getElementById('daoboy-gear-btn');
+  if (gear && new URLSearchParams(window.location.search).get('dev') === '1') {
+    gear.style.display = '';
+  }
   updateDaoBoyStatus();
+}
+
+function getWorkerUrl() {
+  const url = (typeof DaoSanctuaryData !== 'undefined' && DaoSanctuaryData.config?.api?.workerUrl) || '';
+  return url.replace(/\/+$/, '');
 }
 
 function updateDaoBoyStatus() {
   const customKey = localStorage.getItem('dao_gemini_api_key');
-  const defaultKey = (typeof DaoSanctuaryData !== 'undefined' && DaoSanctuaryData.config?.gemini?.defaultKey) || '';
   const endpoint = localStorage.getItem('dao_gemini_endpoint');
   const indicator = document.getElementById('daoboy-live-indicator');
   const engineLabel = document.getElementById('daoboy-engine-label');
+  if (!indicator || !engineLabel) return;
 
-  if (indicator && engineLabel) {
-    if (customKey) {
-      indicator.textContent = t('活體心智 · 自訂Key');
-      indicator.style.borderColor = 'var(--tea)';
-      indicator.style.color = 'var(--tea)';
-      engineLabel.textContent = t('Google Gemini Flash 私有自訂活體心智對談中');
-    } else if (endpoint) {
-      indicator.textContent = t('活體心智 · 專屬代理');
-      indicator.style.borderColor = 'var(--tea)';
-      indicator.style.color = 'var(--tea)';
-      engineLabel.textContent = t('專屬反向代理端點活體心智對談中');
-    } else if (defaultKey) {
-      indicator.textContent = t('活體心智 · 雲端託管');
-      indicator.style.borderColor = 'var(--tea)';
-      indicator.style.color = 'var(--tea)';
-      engineLabel.textContent = t('Google Gemini Flash 雲端託管活體心智對談中');
-    } else {
-      indicator.textContent = t('本地心智');
-      indicator.style.borderColor = 'var(--mist)';
-      indicator.style.color = 'var(--mist)';
-      engineLabel.textContent = t('大道至簡 · 8篇長文與老莊向量智庫即時檢索中');
-    }
+  let badge, label, live = true;
+  if (endpoint) {
+    badge = '活體心智 · 專屬代理';
+    label = '專屬反向代理端點活體心智對談中';
+  } else if (customKey) {
+    badge = '活體心智 · 自訂Key';
+    label = 'Google Gemini Flash 私有自訂活體心智對談中';
+  } else if (getWorkerUrl()) {
+    badge = '活體心智 · 雲端託管';
+    label = 'Google Gemini Flash 雲端託管活體心智對談中';
+  } else {
+    badge = '本地心智';
+    label = '大道至簡 · 長文與老莊向量智庫即時檢索中';
+    live = false;
   }
+  indicator.textContent = t(badge);
+  indicator.style.borderColor = live ? 'var(--tea)' : 'var(--mist)';
+  indicator.style.color = live ? 'var(--tea)' : 'var(--mist)';
+  engineLabel.textContent = t(label);
 }
 
 window.openDaoBoyModal = function() {
@@ -470,8 +476,16 @@ window.askDaoBoy = function(idx) {
   botBubble.className = 'chat-bubble bot';
   botBubble.innerHTML = `${t(item.a)}${daoBoyMirrorHint()}`;
   chatWindow.appendChild(botBubble);
+  rememberDaoBoyTurn(item.q, item.a);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 };
+
+// 近期對話 (最多 8 則) 隨請求送出，道童才能接續上一句；本地兜底的回答不計入
+const daoBoyHistory = [];
+function rememberDaoBoyTurn(question, answer) {
+  daoBoyHistory.push({ role: 'user', text: question }, { role: 'model', text: answer });
+  while (daoBoyHistory.length > 8) daoBoyHistory.shift();
+}
 
 function daoBoyMirrorHint() {
   return `<br><br><small style="color: var(--tea);">${t('若需與簡家旗深度對話 請前往下方「問道之鏡」完成心性過濾')}</small>`;
@@ -494,14 +508,13 @@ async function handleUserQuery(query) {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 
   const customKey = localStorage.getItem('dao_gemini_api_key');
-  const defaultKey = (typeof DaoSanctuaryData !== 'undefined' && DaoSanctuaryData.config?.gemini?.defaultKey) || '';
-  const apiKey = customKey || defaultKey;
   const endpoint = localStorage.getItem('dao_gemini_endpoint');
 
-  // 若有配置 Gemini API Key（雲端託管或自訂）或代理端點，啟用即時活體調用
-  if (apiKey || endpoint) {
+  // 優先序：開發者代理端點 > 開發者自訂 Key > 站方 Cloudflare Worker；皆無則直接用本地智庫
+  if (customKey || endpoint || getWorkerUrl()) {
     try {
-      const liveAnswer = await callGeminiLive(query, apiKey, endpoint);
+      const liveAnswer = await callGeminiLive(query, customKey, endpoint);
+      rememberDaoBoyTurn(query, liveAnswer);
       typingBubble.innerHTML = `${t(liveAnswer)}${daoBoyMirrorHint()}`;
       chatWindow.scrollTop = chatWindow.scrollHeight;
       return;
@@ -518,53 +531,68 @@ async function handleUserQuery(query) {
   }, 500);
 }
 
-// Google Gemini Flash 即時 API 調用引擎
-async function callGeminiLive(query, apiKey, customEndpoint) {
-  const articlesContext = (window.DaoArticlesData || []).map(a => `【${a.title}】(${a.categoryName}): ${a.excerpt}`).join('\n');
-  const model = (typeof DaoSanctuaryData !== 'undefined' && DaoSanctuaryData.config?.gemini?.model) || "gemini-flash-latest";
+// POST JSON 並於逾時時中止 (逾時視為失敗，由呼叫端降級)
+async function postJson(url, body, timeoutMs) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: ctrl.signal
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
+// 道童即時對話：預設走站方 Cloudflare Worker (金鑰留在伺服端)；開發者模式可改用自訂端點或個人 Key
+async function callGeminiLive(query, customKey, customEndpoint) {
+  const articleTitles = (window.DaoArticlesData || []).map(a => a.title);
+  const history = daoBoyHistory.slice();
+
+  // 站方 Worker 或開發者代理：同一組請求格式
+  const proxyUrl = customEndpoint || (customKey ? '' : `${getWorkerUrl()}/chat`);
+  if (proxyUrl) {
+    const res = await postJson(proxyUrl, { prompt: query, history, lang: currentLang, currentLang, articleTitles }, 20000);
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.reply) return data.reply;
+    throw new Error(data.error || `HTTP ${res.status}`);
+  }
+
+  // 開發者直連 (?dev=1 且填了個人 Key)：金鑰放 header，不進 URL
+  const model = (typeof DaoSanctuaryData !== 'undefined' && DaoSanctuaryData.config?.gemini?.model) || "gemini-flash-latest";
+  const articlesContext = (window.DaoArticlesData || []).map(a => `【${a.title}】(${a.categoryName}): ${a.excerpt}`).join('\n');
+  const tw = currentLang === 'zh-tw';
   const systemInstruction = `你是深山的幸福道場守門道童，簡家旗（Bob Chien / 大道至簡）在台灣南投深山茶園的守門童子。
 角色定位：平靜留白、有溫度、像山風拂過；絕不生硬、絕不說教、嚴禁任何 emoji、少用驚嘆號。
 哲學底層：融通老莊「為道日損」、熱力學「耗散結構」與「身體先於大腦」。
-語言規範：${currentLang === 'zh-tw' ? '繁體中文回答，貨幣金額一律使用 NT$（新台幣）' : '簡體中文回答，貨幣金額一律使用 ¥（人民幣）'}。
+語言規範：${tw ? '繁體中文回答，貨幣金額一律使用 NT$（新台幣）' : '簡體中文回答，貨幣金額一律使用 ¥（人民幣）'}。
 主理人長文專欄庫：
 ${articlesContext}
-四柱產品定價：幸福企業諮詢(${currentLang === 'zh-tw' ? 'NT$ 68,000起' : '¥15,000起'})、生命回憶錄(${currentLang === 'zh-tw' ? 'NT$ 220,000起' : '¥49,800起'})、幸福餐桌IP(${currentLang === 'zh-tw' ? 'NT$ 450,000起' : '¥100,000起'})、高管退修會(${currentLang === 'zh-tw' ? 'NT$ 680,000起' : '¥150,000起'})。
+四柱產品定價：幸福企業諮詢(${tw ? 'NT$ 68,000起' : '¥15,000起'})、生命回憶錄(${tw ? 'NT$ 220,000起' : '¥49,800起'})、幸福餐桌IP(${tw ? 'NT$ 450,000起' : '¥100,000起'})、高管退修會(${tw ? 'NT$ 680,000起' : '¥150,000起'})。
 回答在 150–260 字之間，點到即止，引導對方回歸身體、翻閱長文或前往問道之鏡預約。`;
-
-  if (customEndpoint) {
-    const res = await fetch(customEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: query, currentLang })
-    });
-    const data = await res.json();
-    if (data.reply) return data.reply;
-    throw new Error(data.error || "Worker error");
-  } else {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-    const payload = {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": customKey },
+    body: JSON.stringify({
       system_instruction: { parts: [{ text: systemInstruction }] },
-      contents: [{ role: "user", parts: [{ text: query }] }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 600
-      }
-    };
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `HTTP ${res.status}`);
-    }
-    const data = await res.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (reply) return reply;
-    throw new Error("Empty candidate");
+      contents: [
+        ...history.map(h => ({ role: h.role, parts: [{ text: h.text }] })),
+        { role: "user", parts: [{ text: query }] }
+      ],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
+    })
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error?.message || `HTTP ${res.status}`);
   }
+  const data = await res.json();
+  const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (reply) return reply;
+  throw new Error("Empty candidate");
 }
 
 // 本地長文與心法智庫 RAG 兜底匹配
@@ -630,31 +658,103 @@ function initGlobalKeyboardAndHash() {
 // ==========================================
 // 4. 問道之鏡
 // ==========================================
+// 表單送達：POST 到站方 Worker (伺服端產生通關碼、存檔並寄信給主理人)
+// 回傳 { ok:true, code } 或 { ok:false }；未設定 Worker 或任何失敗都回 ok:false，由呼叫端走手動備援
+async function submitBooking(payload) {
+  const base = getWorkerUrl();
+  if (!base) return { ok: false };
+  try {
+    const res = await postJson(`${base}/booking`, payload, 15000);
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ok && data.code) return { ok: true, code: data.code };
+  } catch (err) {
+    console.warn('表單送達失敗，改走手動傳送備援：', err);
+  }
+  return { ok: false };
+}
+
+function localBookingCode() {
+  return 'DAO-' + Math.floor(100000 + Math.random() * 900000);
+}
+
+let mirrorIntent = '';
+let mirrorManualText = '';
+
 function initMirrorForm() {
   const form = document.getElementById('mirror-form');
   const resultBox = document.getElementById('mirror-result-box');
   if (!form || !resultBox) return;
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const q1 = document.getElementById('mirror-q1').value;
-    const q2 = document.getElementById('mirror-q2').value;
-    const q3 = document.getElementById('mirror-q3').value;
+    const q1 = document.getElementById('mirror-q1').value.trim();
+    const q2 = document.getElementById('mirror-q2').value.trim();
+    const q3 = document.getElementById('mirror-q3').value.trim();
+    const status = document.getElementById('mirror-submit-status');
+    const btn = document.getElementById('mirror-submit-btn');
 
     if (!q1 || !q2 || !q3) {
-      alert(t('請完整回答三道心性問題 以完成道場承諾儀式'));
+      if (status) status.textContent = t('請完整回答三道心性問題 以完成道場承諾儀式');
       return;
     }
 
-    form.style.display = 'none';
-    resultBox.style.display = 'block';
+    const btnText = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = t('映照中...'); }
+    if (status) status.textContent = '';
 
-    const bookingCode = 'DAO-' + Math.floor(100000 + Math.random() * 900000);
-    document.getElementById('booking-code-span').textContent = bookingCode;
+    const result = await submitBooking({
+      type: 'mirror',
+      lang: currentLang,
+      intent: mirrorIntent,
+      q1, q2, q3,
+      website: document.getElementById('mirror-website')?.value || ''
+    });
+
+    const code = result.ok ? result.code : localBookingCode();
+    showMirrorResult(code, result.ok, { q1, q2, q3 });
+    if (btn) { btn.disabled = false; btn.textContent = btnText; }
   });
 }
 
+function showMirrorResult(code, delivered, answers) {
+  const contact = DaoSanctuaryData.config.contact;
+  const intentLine = mirrorIntent ? `（意向：${mirrorIntent}）` : '';
+
+  // 已送達只需回傳通關碼；未送達則把完整回答放進訊息，客人傳出去主理人才收得到
+  const message = delivered
+    ? `通關碼 ${code}${intentLine}`
+    : `通關碼 ${code}${intentLine}\n一、${answers.q1}\n二、${answers.q2}\n三、${answers.q3}`;
+  mirrorManualText = message;
+
+  document.getElementById('booking-code-span').textContent = code;
+
+  const statusEl = document.getElementById('mirror-delivery-status');
+  const manualEl = document.getElementById('mirror-manual-actions');
+  if (statusEl) {
+    statusEl.textContent = delivered
+      ? t('✓ 您的回答已送達簡家旗工作室 請憑通關碼從下方任一管道回傳 我們會對照確認')
+      : t('您的回答尚未自動送達。請先複製回答 再連同通關碼傳給下方任一管道 這樣我們才收得到');
+    statusEl.style.color = delivered ? 'var(--tea)' : 'var(--seal)';
+  }
+  if (manualEl) manualEl.style.display = delivered ? 'none' : 'block';
+
+  const lineBtn = document.getElementById('mirror-line-btn');
+  if (lineBtn) lineBtn.href = `https://line.me/R/oaMessage/${contact.lineId}/?${encodeURIComponent(message)}`;
+  const mailBtn = document.getElementById('mirror-mail-btn');
+  if (mailBtn) {
+    mailBtn.href = `mailto:${contact.email}?subject=${encodeURIComponent('問道之鏡 ' + code)}&body=${encodeURIComponent(message)}`;
+  }
+
+  document.getElementById('mirror-form').style.display = 'none';
+  document.getElementById('mirror-result-box').style.display = 'block';
+}
+
+window.copyMirrorManual = function(btn) {
+  copyText(mirrorManualText, btn);
+};
+
 window.scrollToMirror = function(productTitle) {
+  mirrorIntent = productTitle;
   const mirrorSection = document.getElementById('mirror-section');
   if (mirrorSection) {
     mirrorSection.scrollIntoView({ behavior: 'smooth' });
@@ -802,19 +902,21 @@ window.openPetalDrawer = function(petalId) {
       <small style="color: var(--mist); display: block;">${t(petal.deliveryInfo)}</small>
     </div>
 
-    <form onsubmit="handlePetalReservation(event, '${petal.title}')">
+    <form id="petal-form" onsubmit="handlePetalReservation(event, '${petal.id}')">
       <div style="margin-bottom: 16px;">
         <label style="display: block; font-size: 0.88rem; margin-bottom: 6px;">${t('姓名稱呼')}</label>
-        <input type="text" required style="width: 100%; padding: 12px 16px; border: 1px solid var(--line); background: var(--paper); font-size: 0.95rem; border-radius: 0;" placeholder="如：張先生 / 林小姐">
+        <input type="text" name="name" required maxlength="60" autocomplete="name" style="width: 100%; padding: 12px 16px; border: 1px solid var(--line); background: var(--paper); font-size: 0.95rem; border-radius: 0;" placeholder="如：張先生 / 林小姐">
       </div>
       <div style="margin-bottom: 20px;">
         <label style="display: block; font-size: 0.88rem; margin-bottom: 6px;">${t('聯絡方式 (LINE 或 微信號 / 手機號)')}</label>
-        <input type="text" required style="width: 100%; padding: 12px 16px; border: 1px solid var(--line); background: var(--paper); font-size: 0.95rem; border-radius: 0;" placeholder="以便確認節氣配額">
+        <input type="text" name="contact" required maxlength="100" style="width: 100%; padding: 12px 16px; border: 1px solid var(--line); background: var(--paper); font-size: 0.95rem; border-radius: 0;" placeholder="以便確認節氣配額">
       </div>
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0;">
       <button type="submit" class="btn-cta" style="width: 100%;">
         ${t('確認登記節氣配額')} →
       </button>
     </form>
+    <div id="petal-status" role="status" aria-live="polite" style="margin-top: 16px; font-size: 0.88rem; line-height: 1.8; text-wrap: pretty;"></div>
   `;
 
   drawer.classList.add('open');
@@ -829,8 +931,53 @@ window.closePetalDrawer = function() {
   }
 };
 
-window.handlePetalReservation = function(e, title) {
+window.handlePetalReservation = async function(e, petalId) {
   e.preventDefault();
-  alert(t(`感謝結緣 已記錄您對【${title}】的節氣預約 太太與工作室將於節氣出產前夕與您聯繫`));
-  closePetalDrawer();
+  const petal = DaoSanctuaryData.petals.find(p => p.id === petalId);
+  const form = e.target;
+  const status = document.getElementById('petal-status');
+  const btn = form.querySelector('button[type="submit"]');
+  if (!petal || !status) return;
+
+  const name = form.elements.name.value.trim();
+  const contactInfo = form.elements.contact.value.trim();
+  if (!name || !contactInfo) return;
+
+  const btnText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = t('登記中...');
+  status.textContent = '';
+
+  const result = await submitBooking({
+    type: 'petal',
+    lang: currentLang,
+    petalId: petal.id,
+    petalTitle: petal.title,
+    name,
+    contact: contactInfo,
+    website: form.elements.website.value
+  });
+
+  if (result.ok) {
+    // 成功：以抽屜內的狀態取代表單，不使用原生 alert
+    form.style.display = 'none';
+    status.style.color = 'var(--ink)';
+    status.innerHTML = `
+      <div style="border: 1px solid var(--tea); padding: 18px; background: var(--paper-deep);">
+        <div style="color: var(--tea); margin-bottom: 6px;">${t('✓ 已登記 感謝結緣')}</div>
+        <div style="font-family: var(--font-display); font-size: 1.4rem; letter-spacing: 0.12em; margin-bottom: 8px;">${result.code}</div>
+        <div style="color: var(--ink-soft);">${t('太太與工作室將於節氣出產前夕與您聯繫 請留存此通關碼')}</div>
+        <button type="button" class="contact-sub-btn" style="margin-top: 12px;" onclick="copyText('${result.code}', this)">${t('複製通關碼')}</button>
+      </div>`;
+    return;
+  }
+
+  // 失敗或尚未設定 Worker：保留表單內容，提供 LINE 預填訊息備援，客人資料不會憑空消失
+  btn.disabled = false;
+  btn.textContent = btnText;
+  const contact = DaoSanctuaryData.config.contact;
+  const msg = `預約【${petal.title}】\n稱呼：${name}\n聯絡：${contactInfo}`;
+  status.style.color = 'var(--seal)';
+  status.innerHTML = `${t('登記尚未自動送達。請改由 LINE 傳送預約資訊 我們收到後會回覆：')}
+    <a href="https://line.me/R/oaMessage/${contact.lineId}/?${encodeURIComponent(msg)}" target="_blank" rel="noopener" style="color: var(--tea); text-decoration: underline;">${t('以 LINE 傳送預約')} →</a>`;
 };

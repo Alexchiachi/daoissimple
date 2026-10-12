@@ -93,7 +93,8 @@
   * 微信秘書號：`chiachilove`
   * 微信公眾號：`簡家旗-出租大書`
 * **交互規範**：
-  * 問道之鏡生成通關碼後，提供「一鍵複製」與內嵌狀態微反饋，禁止侵入式 `alert()`。
+  * 問道之鏡與花瓣預約由 Worker 伺服端產生通關碼、寫入 KV 並寄信至 `dadaoissimple@gmail.com`；Worker 未設定或失敗時，前端顯示「複製我的回答」與 LINE/信箱預填訊息，確保客人回答不遺失。
+  * 通關碼提供「一鍵複製」與內嵌狀態微反饋，禁止侵入式 `alert()`。
   * 聯絡卡片維持 1px 細線隔間、圓形單字印記（「信」、「賴」、「臉」、「微」）與直角按鈕。
 
 ---
@@ -115,6 +116,11 @@ daoissimple/
 ├── js/
 │   ├── content.js               # 單一數據真理源（四大花心、花瓣香氣、俗人對話錄）
 │   └── app.js                   # 互動引擎（繁簡分流、道童問答、問道之鏡、抽屜）
+├── worker/
+│   ├── index.mjs                # Cloudflare Worker：道童代理 /chat、表單送達 /booking
+│   ├── index.test.mjs           # Worker 測試 (node --test)
+│   ├── wrangler.toml            # 部署設定（Secrets 不入庫）
+│   └── README.md                # 一次性部署步驟
 ├── tools/
 │   ├── build_zhcn.py            # 繁簡在地化建置腳本（OpenCC tw2sp）
 │   ├── check.py                 # 鐵律自動檢查（貨幣、標題標點、emoji、直角、字重、錨點）
@@ -140,7 +146,8 @@ daoissimple/
    ```bash
    python3 tools/push.py "語意 Commit 訊息"
    ```
-5. **重大改變開 PR 與記錄鐵律（最高規範）**：
+5. **金鑰鐵律**：任何 API 金鑰（Gemini、Resend 等）嚴禁寫入本倉庫，含 base64 混淆。一律放 Cloudflare Worker Secret（`npx wrangler secret put`）。`tools/check.py` 會擋。
+6. **重大改變開 PR 與記錄鐵律（最高規範）**：
    * 若商業模式、產品定價、道童活體心智架構、API 金鑰託管或網站核心架構有重大變更，**一律嚴禁直接盲推 main**！
    * **必須建立專屬 Feature 分支並開立 Pull Request (PR)**，在 PR 說明中寫清楚變更原由、技術架構、影響範圍與自檢結果。
    * **必須同步在 `CHANGELOG_AI.md` 追加一筆演進紀錄**，並更新 `AGENTS.md`、`DAO_BOY_GEMINI_STANDARD.md`。

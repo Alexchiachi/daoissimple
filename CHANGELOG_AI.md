@@ -319,6 +319,20 @@ daoissimple/
 * **自檢**：check.py 對正常倉庫通過；以注入違規的副本驗證會正確失敗（11 項）；Playwright 實測：舊 `dao_lang` 被清除、快速提問零 API 請求、繁簡互跳保留 hash、無頁面錯誤。
 * **待辦（已知）**：Gemini 金鑰內嵌（改 Cloudflare Worker）、問道之鏡表單未送達、簡體版動態內容仍以小字典轉換。
 
+### [2026-10-12] 道童金鑰遷往 Cloudflare Worker、問道之鏡與花瓣預約真正送達
+* **起因**：全站檢視發現兩個最大缺口：(1) Gemini 金鑰以 base64 公開在 `js/content.js`，違反自家規範 §2.1；(2) 問道之鏡的三題回答與花瓣預約的姓名聯絡方式從未離開瀏覽器，通關碼是前端隨機數，花瓣預約只彈 `alert()`，主理人收不到任何資料。主理人決定使用 Cloudflare，通知信箱為 `dadaoissimple@gmail.com`。
+* **技術與產出**：
+  1. **`worker/index.mjs`（新增）**：單一 Worker 兩條路由。`POST /chat` 代理 Gemini（金鑰存 Secret、以 `x-goog-api-key` header 傳送、系統提示詞與定價在伺服端、接收近期對話歷史與長文篇名、Origin 白名單、輸入截斷、盡力限流）。`POST /booking` 驗證欄位、伺服端以 `crypto` 產生 `DAO-xxxxxx` 通關碼，寫入 KV（`BOOKINGS`）並經 Resend 寄信通知，內容 HTML 跳脫、主旨去換行，含蜜罐欄位；KV 與寄信都失敗才回 502。
+  2. **`worker/index.test.mjs`（新增）**：9 項測試（來源與方法、金鑰不進 URL、歷史組裝、429/503/400、KV 與寄信、跳脫與 header 注入、雙失敗 502、蜜罐、限流）。
+  3. **`js/content.js`**：移除 `gemini.defaultKey` 與 `atob`；新增 `config.api.workerUrl`（部署後填入，留空則走本地備援）。
+  4. **`js/app.js`**：道童改走 Worker（20 秒逾時後無感降級）、新增對話歷史（快速提問也計入）；開發者金鑰/代理設定改為 `?dev=1` 才顯示齒輪，直連時金鑰改放 header。問道之鏡與花瓣預約改為 `submitBooking()` 送至 Worker：成功顯示伺服端通關碼；未設定或失敗則顯示「複製我的回答」並把回答預填進 LINE（`oaMessage`）與信箱連結，客人資料不會遺失。通關碼與意向項目同送。花瓣預約移除 `alert()`，改為抽屜內狀態與備援連結。
+  5. **`tools/check.py`**：金鑰警告升級為錯誤（`defaultKey`、`atob(`、`AIza…`、`AQ.…`、URL query 帶 key）；新增禁止 `alert()`。**`.github/workflows/check.yml`** 加入 Node 20、`node --check js/app.js` 與 `node --test worker/index.test.mjs`。
+  6. 文件：新增 `worker/README.md`（部署步驟、速率限制建議、KV 查詢）、`worker/wrangler.toml`；改寫 `DAO_BOY_GEMINI_STANDARD.md` §7.2、`AGENTS.md` 金鑰鐵律與目錄；`.gitignore` 加入 Worker 暫存。
+* **影響範圍**：`worker/*`、`js/app.js`、`js/content.js`、`index.html`、`zh-cn/index.html`（重建）、`tools/check.py`、`.github/workflows/check.yml`、`.gitignore`、`DAO_BOY_GEMINI_STANDARD.md`、`AGENTS.md`、`CHANGELOG_AI.md`
+* **自檢**：Worker 9/9 測試通過；以真實 `worker/index.mjs` 搭配 Playwright 端對端驗證：金鑰不在瀏覽器與 URL、問道之鏡與花瓣預約各寄出一封信並寫入 KV、Worker 失敗時表單保留並提供 LINE 預填、未設 Worker 時走手動備援、簡體頁無錯誤；check.py 對注入的金鑰與 alert 正確報錯。
+* **部署前置（須主理人操作，Claude 無法代辦）**：(1) 撤銷舊 Gemini 金鑰（仍在 git 歷史中）；(2) 依 `worker/README.md` 建立 KV、註冊 Resend、寫入兩個 Secret 並 `wrangler deploy`；(3) 把 Worker 網址填入 `config.api.workerUrl`。在填入之前，線上道童走本地智庫，表單走手動備援。
+* **待辦（已知）**：簡體版動態內容以小字典轉換、席次與批次剩餘量資料化、Cloudflare Rate Limiting 規則、電子報名單。
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)
