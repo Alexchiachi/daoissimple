@@ -90,7 +90,7 @@
   * 電子郵件：`dadaoissimple@gmail.com`
   * LINE 官方帳號：`@473nnjul`（`https://line.me/R/ti/p/@473nnjul`）
   * 臉書專頁：`facebook.com/dream2walker`
-  * 微信秘書號：`daoissimple_live`
+  * 微信秘書號：`chiachilove`
   * 微信公眾號：`簡家旗-出租大書`
 * **交互規範**：
   * 問道之鏡生成通關碼後，提供「一鍵複製」與內嵌狀態微反饋，禁止侵入式 `alert()`。

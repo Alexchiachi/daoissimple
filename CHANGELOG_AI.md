@@ -249,6 +249,20 @@ daoissimple/
   - `zh-cn/index.html`
   - `CHANGELOG_AI.md`
 
+### [2026-10-12 18:18] 更新微信秘書號為 chiachilove
+* **起因**：主理人明確指示更新微信秘書號為 `chiachilove`。
+* **技術實作**：
+  1. `js/content.js`：更新單一真理源 `contact.wechatId: "chiachilove"`。
+  2. `index.html`：更新問道之鏡大陸通道秘書卡片數值與一鍵複製指令 `copyText('chiachilove', this)`。
+  3. `tools/build_zhcn.py`：執行繁簡在地化同步，自動產生 `zh-cn/index.html`。
+  4. `AGENTS.md`：同步更新官方聯絡體系之微信秘書號。
+* **影響範圍**：
+  - `js/content.js`
+  - `index.html`
+  - `zh-cn/index.html`
+  - `AGENTS.md`
+  - `CHANGELOG_AI.md`
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)
