@@ -6,9 +6,12 @@ CI 與本機皆可執行：先 python3 tools/build_zhcn.py，再 python3 tools/c
 退出碼：0 全數通過（可有警告）；1 有違規。
 """
 
+import json
 import pathlib
 import re
+import struct
 import sys
+import xml.etree.ElementTree as ET
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -28,8 +31,18 @@ errors = []
 warnings = []
 
 
+def article_pages():
+    """build_seo.py 產生的長文頁（繁、簡）。"""
+    pages = []
+    for base in ("articles", "zh-cn/articles"):
+        d = ROOT / base
+        if d.exists():
+            pages += sorted(f"{base}/{p.name}/index.html" for p in d.iterdir() if (p / "index.html").exists())
+    return pages
+
+
 def read(name):
-    path = SITE_FILES[name]
+    path = SITE_FILES.get(name) or (ROOT / name)
     if not path.exists():
         errors.append(f"{name}：檔案不存在（zh-cn 需先執行 tools/build_zhcn.py）")
         return ""
@@ -58,9 +71,10 @@ def check_currency():
     for m in re.finditer(r"約\s*(?:NT\$|¥)", html):
         fail("index.html", html, m.start(), "價格前出現「約」字贅語")
 
-    zh = read("zh-cn/index.html")
-    for m in re.finditer(r"NT\$", zh):
-        fail("zh-cn/index.html", zh, m.start(), "簡體版出現「NT$」，簡體一律使用 ¥")
+    for name in ("zh-cn/index.html", *[p for p in article_pages() if p.startswith("zh-cn/")]):
+        zh = read(name)
+        for m in re.finditer(r"NT\$", zh):
+            fail(name, zh, m.start(), "簡體版出現「NT$」，簡體一律使用 ¥")
 
     for name in ("zh-cn/content.js", "zh-cn/articles.js", "zh-cn/app.js"):
         text = read(name)
@@ -92,7 +106,7 @@ def check_titles():
             if TITLE_PUNCT.search(m.group(1)):
                 fail(name, text, m.start(), f"標題含標點符號：{m.group(1)}")
     # HTML 標題標籤
-    for name in ("index.html", "zh-cn/index.html"):
+    for name in ("index.html", "zh-cn/index.html", *article_pages()):
         html = read(name)
         for m in re.finditer(r"<(h[1-3])\b[^>]*>(.*?)</\1>", html, flags=re.S):
             inner = re.sub(r"<[^>]+>", "", m.group(2)).strip()
@@ -102,7 +116,7 @@ def check_titles():
 
 def check_no_emoji():
     for name in ("index.html", "zh-cn/index.html", "js/app.js", "js/content.js", "js/articles.js",
-                 "zh-cn/app.js", "zh-cn/content.js", "zh-cn/articles.js"):
+                 "zh-cn/app.js", "zh-cn/content.js", "zh-cn/articles.js", *article_pages()):
         text = read(name)
         for m in EMOJI.finditer(text):
             fail(name, text, m.start(), f"出現 emoji（U+{ord(m.group()):04X}），DESIGN.md 禁用")
@@ -175,8 +189,10 @@ def check_no_alert():
             fail(name, app, m.start(), "禁止侵入式 alert()，請改用內嵌狀態微反饋")
 
 
-# OpenCC 會把簡體的「么」（什么、怎么）當成繁體再轉成「幺」，這不是繁體殘留
-OPENCC_AMBIGUOUS = {("么", "幺")}
+# OpenCC 的已知怪癖，不是繁體殘留：
+#  ・簡體的「么」（什么、怎么）會被當成繁體再轉成「幺」
+#  ・「通道」會被轉成「信道」；build_zhcn.py 刻意在轉換後把「信道」改回「通道」（channel 的習慣用語）
+OPENCC_AMBIGUOUS = {("么", "幺"), ("通", "信")}
 
 
 def check_zhcn_simplified():
@@ -187,10 +203,13 @@ def check_zhcn_simplified():
         warnings.append("未安裝 opencc，略過簡體版殘留繁體字檢查（pip install opencc-python-reimplemented）")
         return
     cc = OpenCC("tw2sp")
-    for name in ("zh-cn/content.js", "zh-cn/articles.js", "zh-cn/app.js"):
+    html_pages = ["zh-cn/index.html", *[p for p in article_pages() if p.startswith("zh-cn/")]]
+    for name in ("zh-cn/content.js", "zh-cn/articles.js", "zh-cn/app.js", *html_pages):
         text = read(name)
         if not text:
             continue
+        if name.endswith(".html"):
+            text = text.replace("繁體", "")  # 切換回繁體版的按鈕文字，刻意保留繁體
         converted = cc.convert(text)
         if converted == text:
             continue
@@ -204,6 +223,123 @@ def check_zhcn_simplified():
         # 長度不同或僅有已知例外的差異，不視為違規
 
 
+def check_seo():
+    """SEO 產出（tools/build_seo.py）：每篇長文有獨立頁、canonical 與 hreflang 互指、JSON-LD 可解析、
+    sitemap 與 feed 完整、連結不斷、分享預覽圖存在。"""
+    articles_js = read("js/articles.js")
+    ids = re.findall(r'\bid:\s*"(art-[^"]+)"', articles_js)
+    if not ids:
+        errors.append("js/articles.js：找不到任何長文 id")
+        return
+
+    home = read("index.html")
+    m = re.search(r'<link rel="canonical" href="([^"]+)">', home)
+    if not m:
+        errors.append("index.html：缺少 canonical（請執行 tools/build_zhcn.py）")
+        return
+    site = m.group(1)
+    if not site.endswith("/"):
+        errors.append(f"index.html：首頁 canonical 應以 / 結尾：{site}")
+        return
+
+    def ld_ok(name, text):
+        blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', text, re.S)
+        if not blocks:
+            errors.append(f"{name}：缺少 JSON-LD 結構化資料")
+        for b in blocks:
+            try:
+                json.loads(b)
+            except ValueError as e:
+                errors.append(f"{name}：JSON-LD 無法解析（{e}）")
+
+    def common(name, text, canonical, hreflangs):
+        if f'<link rel="canonical" href="{canonical}">' not in text:
+            errors.append(f"{name}：canonical 應為 {canonical}")
+        for lang, href in hreflangs.items():
+            if f'hreflang="{lang}" href="{href}"' not in text:
+                errors.append(f"{name}：hreflang={lang} 應指向 {href}")
+        if f'<meta property="og:image" content="{site}images/og-cover.png">' not in text:
+            errors.append(f"{name}：缺少 og:image")
+        if text.count("<h1") != 1:
+            errors.append(f"{name}：頁面應恰有一個 h1（目前 {text.count('<h1')} 個）")
+        if not re.search(r'<meta name="description" content="[^"]{10,}', text):
+            errors.append(f"{name}：缺少 meta description")
+        ld_ok(name, text)
+
+    # 首頁（繁、簡）
+    tw_alt = {"zh-Hant": site, "zh-Hans": site + "zh-cn/", "x-default": site}
+    common("index.html", home, site, tw_alt)
+    cn_home = read("zh-cn/index.html")
+    common("zh-cn/index.html", cn_home, site + "zh-cn/", tw_alt)
+    for name, text in (("index.html", home), ("zh-cn/index.html", cn_home)):
+        for aid in ids:
+            if f'href="articles/{aid}/"' not in text:
+                errors.append(f"{name}：無 JS 長文索引缺少 {aid}（請執行 tools/build_zhcn.py）")
+
+    # 長文頁
+    for aid in ids:
+        for prefix in ("", "zh-cn/"):
+            name = f"{prefix}articles/{aid}/index.html"
+            text = read(name)
+            if not text:
+                continue
+            tw_url, cn_url = f"{site}articles/{aid}/", f"{site}zh-cn/articles/{aid}/"
+            common(name, text, cn_url if prefix else tw_url, {"zh-Hant": tw_url, "zh-Hans": cn_url, "x-default": tw_url})
+            if 'class="zen-article-body"' not in text or text.count("<p>") < 3:
+                errors.append(f"{name}：正文缺漏")
+            # 相對連結必須存在
+            base = (ROOT / name).parent
+            for href in re.findall(r'(?:href|src)="((?:\.\./)[^"#?]*)"', text):
+                target = (base / href).resolve()
+                ok = (target / "index.html").exists() if href.endswith("/") else target.exists()
+                if not ok:
+                    errors.append(f"{name}：連結不存在 {href}")
+
+    # sitemap
+    sm = read("sitemap.xml")
+    if sm:
+        try:
+            ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+            locs = [e.text for e in ET.fromstring(sm).findall("s:url/s:loc", ns)]
+        except ET.ParseError as e:
+            errors.append(f"sitemap.xml：XML 無法解析（{e}）")
+            locs = []
+        expected = {site, site + "zh-cn/"}
+        for aid in ids:
+            expected |= {f"{site}articles/{aid}/", f"{site}zh-cn/articles/{aid}/"}
+        if len(locs) != len(set(locs)):
+            errors.append("sitemap.xml：有重複網址")
+        for miss in sorted(expected - set(locs)):
+            errors.append(f"sitemap.xml：缺少 {miss}")
+        for extra in sorted(set(locs) - expected):
+            errors.append(f"sitemap.xml：多出不存在的網址 {extra}")
+
+    # RSS
+    for name in ("feed.xml", "zh-cn/feed.xml"):
+        text = read(name)
+        if not text:
+            continue
+        try:
+            items = ET.fromstring(text).findall("channel/item")
+        except ET.ParseError as e:
+            errors.append(f"{name}：XML 無法解析（{e}）")
+            continue
+        if len(items) != len(ids):
+            errors.append(f"{name}：項目數 {len(items)} 與長文數 {len(ids)} 不符")
+
+    # robots 與預覽圖
+    robots = read("robots.txt")
+    if robots and f"Sitemap: {site}sitemap.xml" not in robots:
+        errors.append(f"robots.txt：Sitemap 應為 {site}sitemap.xml")
+    og = ROOT / "images" / "og-cover.png"
+    if not og.exists():
+        errors.append("images/og-cover.png：分享預覽圖不存在（python3 tools/make_og_image.py）")
+    else:
+        head = og.read_bytes()[:24]
+        if head[:8] != b"\x89PNG\r\n\x1a\n" or struct.unpack(">II", head[16:24]) != (1200, 630):
+            errors.append("images/og-cover.png：必須是 1200x630 的 PNG")
+
+
 def main():
     check_currency()
     check_titles()
@@ -213,6 +349,7 @@ def main():
     check_secrets()
     check_no_alert()
     check_zhcn_simplified()
+    check_seo()
 
     for w in warnings:
         print(f"警告  {w}")

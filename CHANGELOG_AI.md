@@ -380,6 +380,28 @@ daoissimple/
   - Obsidian iCloud 源頭標準
   - Google Drive 雲端文檔
 
+### [2026-10-12] SEO 基礎件與長文獨立網址
+* **起因**：全站檢視發現站內全由 JS 動態渲染、長文只有 `#read=` hash 路由，爬蟲看不到內容、長文也無法單獨分享；缺 canonical、hreflang、Open Graph、sitemap、結構化資料與分享預覽圖，首頁還有兩個 h1。
+* **決議與產出**：
+  1. **`tools/build_seo.py`（新增，由 `build_zhcn.py` 呼叫）**：
+     - 每篇長文產生靜態獨立網頁 `articles/<id>/index.html`（繁）與 `zh-cn/articles/<id>/index.html`（簡）。正文為純 HTML，無 JS 也能讀；含 canonical、繁簡 hreflang 互指、Open Graph、Twitter Card、JSON-LD（Article 加 BreadcrumbList）、延伸閱讀內部連結，並沿用站內紙墨樣式。
+     - `sitemap.xml`（首頁與全部長文，含 hreflang 互指，不放 lastmod 以保持建置結果固定）、`feed.xml` 與 `zh-cn/feed.xml`（RSS 2.0）、`robots.txt`。
+     - 就地改寫 `index.html`／`zh-cn/index.html` 內兩段標記區塊：`SEO:HEAD`（canonical、hreflang、OG、Twitter、JSON-LD 的 Person 與 WebSite）、`SEO:ARTICLES`（無 JS 時的長文索引 noscript）。
+     - 網址只在 `SITE_URL` 一處設定，可用環境變數 `DAO_SITE_URL` 覆寫，改用自有網域時一次更新。
+  2. **`js/app.js`**：文章卡片的「入席靜讀」由 button 改為真實連結 `articles/<id>/`（爬蟲可跟隨），一般點擊仍開沉浸閱讀卷；閱讀卷新增「複製文章連結」。
+  3. **`index.html`／`css/style.css`**：導覽列品牌的 h1 改為 `span.brand-name`，全頁只留一個 h1；新增獨立文章頁與延伸閱讀樣式。
+  4. **`tools/make_og_image.py` 與 `images/og-cover.png`**：1200x630 分享預覽圖（米白紙底、墨色細字、茶褐點綴、一方朱印），LINE 與臉書貼連結時顯示。
+  5. **`tools/check.py` 的 `check_seo()`**：每篇長文繁簡兩頁都在；canonical 與 hreflang 正確；恰有一個 h1；JSON-LD 可解析；相對連結不斷；sitemap 與 feed 完整且無多餘；robots 指向 sitemap；預覽圖為 1200x630 PNG；長文頁併入標題標點、emoji、`NT$`、簡體殘留繁體字檢查。
+  6. **CI**：`check.yml` 改以 `git status --porcelain` 驗證 `zh-cn/`、`articles/`、`sitemap.xml`、`feed.xml`、`robots.txt`、`index.html` 皆與建置結果一致（可抓到未追蹤的新檔案）；`pages.yml` 與 `check.yml` 加入 Node 20（建置需要 node）。
+  7. 簡體切換按鈕的提示文字原本殘留繁體「切換」，已修正；OpenCC 對「通道」的已知轉換怪癖加入檢查例外。
+* **影響範圍**：`tools/build_seo.py`、`tools/make_og_image.py`、`tools/build_zhcn.py`、`tools/check.py`、`.github/workflows/check.yml`、`.github/workflows/pages.yml`、`js/app.js`、`index.html`、`css/style.css`、`images/og-cover.png`、`articles/*`、`zh-cn/*`、`sitemap.xml`、`feed.xml`、`robots.txt`、`.gitignore`、`README.md`、`AGENTS.md`、`CHANGELOG_AI.md`
+* **自檢**：`tools/check.py` 通過；以注入錯誤的副本驗證會正確報錯（錯 canonical、缺頁、壞 JSON-LD、多餘 sitemap 網址、雙 h1、壞連結共 9 項）。Playwright 端對端：卡片為真實連結且點擊仍開閱讀卷、複製的文章網址繁簡各自正確、獨立文章頁版面與標題字重 300、延伸閱讀與繁簡互跳、簡體頁預約按鈕指向簡體首頁、關閉 JS 時看得到 8 篇長文連結、手機版無水平溢出、sitemap／feed／robots／預覽圖皆可取得、無頁面錯誤。
+* **限制與主理人待辦**：
+  - 本站部署在 `github.io/daoissimple/` 子路徑，**搜尋引擎只讀網域根目錄的 `robots.txt`**，所以此處的 `robots.txt` 暫時無效（不影響收錄，預設即允許）。請改用 Google Search Console 與 Bing Webmaster Tools 驗證網站並**手動提交 `https://alexchiachi.github.io/daoissimple/sitemap.xml`**。日後換自有網域，`robots.txt` 即自動生效。
+  - 長文資料只有 `season`（如「2026 霜降」），沒有 ISO 日期，所以 JSON-LD 與 RSS 暫無發佈日。若 `js/articles.js` 日後為文章加上 `datePublished: "2026-10-23"` 欄位，JSON-LD 會自動輸出。
+  - 預覽圖在 LINE、臉書有快取，換圖後可用各平台的偵錯工具重新抓取。
+* **待辦（已知）**：席次與批次剩餘量資料化、電子報名單、量測（Cloudflare Web Analytics）。
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)

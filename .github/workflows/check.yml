@@ -27,5 +27,13 @@ jobs:
         run: python tools/check.py
       - name: Syntax check frontend
         run: node --check js/app.js
-      - name: Verify zh-cn is up to date
-        run: git diff --exit-code -- zh-cn/
+      - name: Verify generated files are up to date
+        run: |
+          # 簡體版、長文獨立頁、sitemap、feed、robots 與 index.html 的 SEO 區塊都是編譯結果；
+          # 改了來源卻沒重新執行 python3 tools/build_zhcn.py 時，這裡會失敗
+          out="$(git status --porcelain -- zh-cn articles sitemap.xml feed.xml robots.txt index.html)"
+          if [ -n "$out" ]; then
+            echo "$out"
+            echo "::error::編譯結果與已提交的檔案不一致，請在本機執行 python3 tools/build_zhcn.py 並提交"
+            exit 1
+          fi
