@@ -154,6 +154,13 @@ daoissimple/
   * 更新 `README.md`，同步修正定價文字與補充 AI 指南連結。
   * 全面測試並推送到 GitHub 遠端。
 
+### [2026-10-12 14:35] 手機端維護閉環與 GitHub Actions 雲端自動建置升級
+* **起因**：主理人提出「想用手機測試並修改內容可以怎麼做」，需實現無須打開電腦即可在手機端極簡修改內容，且繁簡兩版自動同步。
+* **動作**：
+  * 升級 `.github/workflows/pages.yml`：增加 Python 3.11 環境安裝與 `opencc-python-reimplemented` 自動執行 `tools/build_zhcn.py` 步驟。
+  * 修復 `tools/build_zhcn.py` 繁簡切換按鈕對齊 `.lang-switch-btn` 且去除 emoji。
+  * 達成效果：主理人未來即便直接在手機端透過 GitHub App 編輯 `js/content.js`，雲端 CI/CD 會全自動編譯簡體版並發布上線，徹底解放手動編譯依賴。
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)

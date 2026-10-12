@@ -22,6 +22,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install opencc-python-reimplemented
+      - name: Build Simplified Chinese version
+        run: python tools/build_zhcn.py
       - uses: actions/configure-pages@v5
         with:
           enablement: true

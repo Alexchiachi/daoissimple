@@ -44,7 +44,7 @@ def main():
     # 調整語系切換按鈕，點擊返回繁體版首頁
     converted = re.sub(
         r'<button id="lang-toggle-btn"[^>]*>.*?</button>',
-        '<a href="../index.html" class="btn-lang-toggle" style="text-decoration: none;"><span>🌐</span> <span class="lang-label">繁體中文</span></a>',
+        '<a href="../index.html" class="lang-switch-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;" title="切換至繁體中文">繁體</a>',
         converted,
         flags=re.DOTALL
     )
