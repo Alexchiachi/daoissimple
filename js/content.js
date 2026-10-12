@@ -34,13 +34,10 @@ const DaoSanctuaryData = {
       githubRepo: "https://github.com/Alexchiachi/daoissimple"
     },
     api: {
-      // Cloudflare Worker 網址：道童對話 (/chat) 與表單送達 (/booking) 共用，部署步驟見 worker/README.md
-      // 留空時：道童走本地智庫，問道之鏡與花瓣預約顯示手動傳送備援（不遺失客人回答）
-      workerUrl: ""
-    },
-    gemini: {
-      // 僅供 ?dev=1 開發者模式直連使用，金鑰一律不得寫入本倉庫
-      model: "gemini-flash-latest"
+      // 問道之鏡與花瓣預約的收件處：happy 倉庫已部署的 Cloudflare Worker (executive-table/worker/dao.js)
+      // 伺服端產生通關碼、存入來信資料表並寄通知到 dadaoissimple@gmail.com
+      // 失敗或留空時，網頁顯示「複製我的回答」與 LINE/信箱預填訊息備援，不遺失客人回答
+      bookingUrl: "https://executive-table.jianchiachi.workers.dev/api/dao"
     }
   },
 

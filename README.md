@@ -8,7 +8,7 @@
 > - 全局架構與操作手冊：[`AGENTS.md`](AGENTS.md)  
 > - 侘寂與紙墨視覺規範：[`DESIGN.md`](DESIGN.md)  
 > - 建置歷程與演進日誌：[`CHANGELOG_AI.md`](CHANGELOG_AI.md)  
-> - 深山道童 Gemini 規範：[`DAO_BOY_GEMINI_STANDARD.md`](DAO_BOY_GEMINI_STANDARD.md)  
+> - 深山道童規範（純本地智庫，無金鑰）：[`DAO_BOY_GEMINI_STANDARD.md`](DAO_BOY_GEMINI_STANDARD.md)  
 > - Claude 工具鏈指令：[`CLAUDE.md`](CLAUDE.md)  
 > - **重大變更鐵律**：任何重大修改皆須記錄於 `CHANGELOG_AI.md`。
 

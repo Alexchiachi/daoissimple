@@ -333,6 +333,24 @@ daoissimple/
 * **部署前置（須主理人操作，Claude 無法代辦）**：(1) 撤銷舊 Gemini 金鑰（仍在 git 歷史中）；(2) 依 `worker/README.md` 建立 KV、註冊 Resend、寫入兩個 Secret 並 `wrangler deploy`；(3) 把 Worker 網址填入 `config.api.workerUrl`。在填入之前，線上道童走本地智庫，表單走手動備援。
 * **待辦（已知）**：簡體版動態內容以小字典轉換、席次與批次剩餘量資料化、Cloudflare Rate Limiting 規則、電子報名單。
 
+### [2026-10-12] 移除道童 Gemini 與金鑰功能，表單改接 happy 已部署的 Worker
+* **起因**：PR #2 曾新增獨立的 `worker/`（Gemini 代理加表單送達）。主理人指出 `Alexchiachi/happy` 已有部署好的 Cloudflare Worker（`executive-table`，含 D1、Gmail 寄信、管理頁），並決定「功能上去除道童金鑰這個程式」。
+* **決議**：
+  1. **深山道童不再接 Gemini 或任何外部 AI，沒有金鑰**。道童只用本地智庫（預寫答案加長文關鍵字比對）。理由：舊金鑰已因 base64 內嵌而公開、道童價值在站內長文本身、一人公司不增加新服務與帳號。
+  2. 問道之鏡與花瓣預約沿用 happy 的 Worker，不另建服務。
+* **技術與產出**：
+  1. **`Alexchiachi/happy` PR #56**：新增 `executive-table/worker/dao.js` 與 `POST /api/dao` 路由。因為這兩個表單不收 email，無法用必填 email 的 `/api/letter`。通關碼由 Worker 產生，資料寫進既有 `letters` 表（`subject` 為 `[問道之鏡] DAO-xxxxxx 意向`，`page` 為 `daoissimple:mirror/petal`），通知寄 `dadaoissimple@gmail.com`，在 `/admin` 的「大道至簡來信」搜尋通關碼即可，沿用其蜜罐與限流。
+  2. **`js/app.js`**：移除 `callGeminiLive`、金鑰/代理設定彈窗與全部相關函式、對話歷史、`?dev=1` 入口；`handleUserQuery` 只走本地智庫；`submitBooking` 改 POST 到 `config.api.bookingUrl`。載入時清除訪客瀏覽器殘留的 `dao_gemini_api_key`、`dao_gemini_endpoint`。
+  3. **`js/content.js`**：移除 `gemini` 區塊與 `api.workerUrl`；新增 `api.bookingUrl`（`https://executive-table.jianchiachi.workers.dev/api/dao`）。
+  4. **`index.html`**：移除齒輪鈕與整個設定彈窗；徽章改「本地智庫」。
+  5. 移除 `worker/` 目錄與 CI 的 Worker 測試步驟；`tools/check.py` 新增禁止任何 `generativelanguage.googleapis.com` 直連，防止外部 AI 被悄悄加回。
+  6. 文件：重寫 `DAO_BOY_GEMINI_STANDARD.md`（檔名保留，內容改為純本地智庫規範）、更新 `CLAUDE.md`、`AGENTS.md`。
+* **影響範圍**：`js/app.js`、`js/content.js`、`index.html`、`zh-cn/index.html`（重建）、`tools/check.py`、`.github/workflows/check.yml`、`worker/`（刪除）、`DAO_BOY_GEMINI_STANDARD.md`、`CLAUDE.md`、`AGENTS.md`、`CHANGELOG_AI.md`
+* **自檢**：`tools/check.py` 通過。以 happy 的真實 `dao.js` 搭配假 D1 與 Playwright 端對端驗證：道童無任何外部請求、舊金鑰被清除、問道之鏡與花瓣預約各寄出通知且通關碼來自伺服端、Worker 故障時表單保留並提供 LINE 預填、簡體頁無錯誤。
+* **部署順序**：須先合併並部署 `happy` 的 PR #56（`/api/dao` 才會存在），再合併本 PR。若順序顛倒，表單會走手動備援，不會遺失客人回答。
+* **主理人待辦**：到 Google AI Studio 撤銷舊 Gemini 金鑰（仍在 git 歷史）；Worker 部署後實測一次問道之鏡（收到通知信、`/admin` 搜得到通關碼）。
+* **待辦（已知）**：簡體版動態內容以小字典轉換、席次與批次剩餘量資料化、電子報名單。
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)

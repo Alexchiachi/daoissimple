@@ -142,16 +142,16 @@ def check_html_integrity():
 
 
 def check_secrets():
-    """金鑰一律不得進入公開倉庫：道童走 Cloudflare Worker，見 worker/README.md"""
+    """道童已改為純本地智庫：倉庫內不得有任何金鑰，也不得直連外部 AI 服務"""
     content = read("js/content.js")
     for m in re.finditer(r"defaultKey\s*:|atob\(|Buffer\.from\(", content):
-        fail("js/content.js", content, m.start(), "疑似內嵌金鑰（defaultKey / atob），金鑰必須留在 Worker Secret")
+        fail("js/content.js", content, m.start(), "疑似內嵌金鑰（defaultKey / atob），本站不使用任何 API 金鑰")
     for name in ("index.html", "zh-cn/index.html", "js/app.js", "js/content.js", "js/articles.js"):
         text = read(name)
         for m in re.finditer(r"AIza[0-9A-Za-z_\-]{30,}|AQ\.[0-9A-Za-z_\-]{30,}", text):
             fail(name, text, m.start(), "疑似 Google API 金鑰明文")
-        for m in re.finditer(r"generativelanguage\.googleapis\.com[^`'\"]*\?key=", text):
-            fail(name, text, m.start(), "金鑰不可放在 URL query，請用 x-goog-api-key header")
+        for m in re.finditer(r"generativelanguage\.googleapis\.com", text):
+            fail(name, text, m.start(), "道童已移除 Gemini，不得再直連外部 AI 服務（2026-10 決議，見 CHANGELOG_AI.md）")
 
 
 def check_no_alert():

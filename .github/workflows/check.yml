@@ -27,7 +27,5 @@ jobs:
         run: python tools/check.py
       - name: Syntax check frontend
         run: node --check js/app.js
-      - name: Test Cloudflare Worker
-        run: node --test worker/index.test.mjs
       - name: Verify zh-cn is up to date
         run: git diff --exit-code -- zh-cn/index.html
