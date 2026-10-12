@@ -314,117 +314,19 @@ window.askDaoBoyAboutArticle = function(title) {
 };
 
 // ==========================================
-// 4. 守門道童問答 (本地智庫 + Gemini 2.0 活體對談)
+// 4. 守門道童問答 (純本地智庫：長文專欄與老莊心法，不接任何外部 AI 服務，無金鑰)
 // ==========================================
 function initDaoBoyLiveSettings() {
-  // 金鑰/代理設定只給開發者除錯：網址加 ?dev=1 才顯示齒輪
-  const gear = document.getElementById('daoboy-gear-btn');
-  if (gear && new URLSearchParams(window.location.search).get('dev') === '1') {
-    gear.style.display = '';
-  }
-  updateDaoBoyStatus();
-}
-
-function getWorkerUrl() {
-  const url = (typeof DaoSanctuaryData !== 'undefined' && DaoSanctuaryData.config?.api?.workerUrl) || '';
-  return url.replace(/\/+$/, '');
-}
-
-function updateDaoBoyStatus() {
-  const customKey = localStorage.getItem('dao_gemini_api_key');
-  const endpoint = localStorage.getItem('dao_gemini_endpoint');
+  // 清除舊版曾保存在訪客瀏覽器的 Gemini 金鑰與代理設定
+  try {
+    localStorage.removeItem('dao_gemini_api_key');
+    localStorage.removeItem('dao_gemini_endpoint');
+  } catch (e) { /* 無痕模式等環境無法存取，略過 */ }
   const indicator = document.getElementById('daoboy-live-indicator');
   const engineLabel = document.getElementById('daoboy-engine-label');
-  if (!indicator || !engineLabel) return;
-
-  let badge, label, live = true;
-  if (endpoint) {
-    badge = '活體心智 · 專屬代理';
-    label = '專屬反向代理端點活體心智對談中';
-  } else if (customKey) {
-    badge = '活體心智 · 自訂Key';
-    label = 'Google Gemini Flash 私有自訂活體心智對談中';
-  } else if (getWorkerUrl()) {
-    badge = '活體心智 · 雲端託管';
-    label = 'Google Gemini Flash 雲端託管活體心智對談中';
-  } else {
-    badge = '本地心智';
-    label = '大道至簡 · 長文與老莊向量智庫即時檢索中';
-    live = false;
-  }
-  indicator.textContent = t(badge);
-  indicator.style.borderColor = live ? 'var(--tea)' : 'var(--mist)';
-  indicator.style.color = live ? 'var(--tea)' : 'var(--mist)';
-  engineLabel.textContent = t(label);
+  if (indicator) indicator.textContent = t('本地智庫');
+  if (engineLabel) engineLabel.textContent = t('長文專欄與老莊心法即時檢索中');
 }
-
-window.openDaoBoyModal = function() {
-  const modal = document.getElementById('daoboy-modal-overlay');
-  const keyInput = document.getElementById('gemini-key-input');
-  const endpointInput = document.getElementById('gemini-endpoint-input');
-  if (keyInput) keyInput.value = localStorage.getItem('dao_gemini_api_key') || '';
-  if (endpointInput) endpointInput.value = localStorage.getItem('dao_gemini_endpoint') || '';
-  if (modal) {
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-};
-
-window.closeDaoBoyModal = function(e) {
-  if (e && e.target && e.target !== document.getElementById('daoboy-modal-overlay') && !e.target.classList.contains('drawer-close-btn')) {
-    return;
-  }
-  const modal = document.getElementById('daoboy-modal-overlay');
-  if (modal) {
-    modal.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-};
-
-window.saveDaoBoySettings = function() {
-  const key = document.getElementById('gemini-key-input').value.trim();
-  const endpoint = document.getElementById('gemini-endpoint-input').value.trim();
-  const status = document.getElementById('daoboy-modal-status');
-
-  if (key) {
-    localStorage.setItem('dao_gemini_api_key', key);
-  } else {
-    localStorage.removeItem('dao_gemini_api_key');
-  }
-
-  if (endpoint) {
-    localStorage.setItem('dao_gemini_endpoint', endpoint);
-  } else {
-    localStorage.removeItem('dao_gemini_endpoint');
-  }
-
-  updateDaoBoyStatus();
-  if (status) {
-    status.textContent = t('✓ 活體心智配置已生效');
-    setTimeout(() => {
-      closeDaoBoyModal();
-      status.textContent = '';
-    }, 1000);
-  }
-};
-
-window.clearDaoBoySettings = function() {
-  localStorage.removeItem('dao_gemini_api_key');
-  localStorage.removeItem('dao_gemini_endpoint');
-  const keyInput = document.getElementById('gemini-key-input');
-  const endpointInput = document.getElementById('gemini-endpoint-input');
-  const status = document.getElementById('daoboy-modal-status');
-  if (keyInput) keyInput.value = '';
-  if (endpointInput) endpointInput.value = '';
-  updateDaoBoyStatus();
-  if (status) {
-    status.textContent = t('已重置為本地深山長文智庫');
-    setTimeout(() => {
-      closeDaoBoyModal();
-      status.textContent = '';
-    }, 1000);
-  }
-};
 
 function initDaoBoyChat() {
   const chatWindow = document.getElementById('daoboy-chat-window');
@@ -476,16 +378,8 @@ window.askDaoBoy = function(idx) {
   botBubble.className = 'chat-bubble bot';
   botBubble.innerHTML = `${t(item.a)}${daoBoyMirrorHint()}`;
   chatWindow.appendChild(botBubble);
-  rememberDaoBoyTurn(item.q, item.a);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 };
-
-// 近期對話 (最多 8 則) 隨請求送出，道童才能接續上一句；本地兜底的回答不計入
-const daoBoyHistory = [];
-function rememberDaoBoyTurn(question, answer) {
-  daoBoyHistory.push({ role: 'user', text: question }, { role: 'model', text: answer });
-  while (daoBoyHistory.length > 8) daoBoyHistory.shift();
-}
 
 function daoBoyMirrorHint() {
   return `<br><br><small style="color: var(--tea);">${t('若需與簡家旗深度對話 請前往下方「問道之鏡」完成心性過濾')}</small>`;
@@ -507,23 +401,7 @@ async function handleUserQuery(query) {
   chatWindow.appendChild(typingBubble);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 
-  const customKey = localStorage.getItem('dao_gemini_api_key');
-  const endpoint = localStorage.getItem('dao_gemini_endpoint');
-
-  // 優先序：開發者代理端點 > 開發者自訂 Key > 站方 Cloudflare Worker；皆無則直接用本地智庫
-  if (customKey || endpoint || getWorkerUrl()) {
-    try {
-      const liveAnswer = await callGeminiLive(query, customKey, endpoint);
-      rememberDaoBoyTurn(query, liveAnswer);
-      typingBubble.innerHTML = `${t(liveAnswer)}${daoBoyMirrorHint()}`;
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-      return;
-    } catch (err) {
-      console.warn("Gemini 活體調用失敗或超額，無感降級回本地長文智庫：", err);
-    }
-  }
-
-  // 本地智庫無感降級與精準匹配
+  // 本地智庫精準匹配 (稍作停頓，維持沏茶靜思的節奏)
   setTimeout(() => {
     const fallbackAnswer = fallbackLocalWisdom(query);
     typingBubble.innerHTML = `${t(fallbackAnswer)}${daoBoyMirrorHint()}`;
@@ -545,54 +423,6 @@ async function postJson(url, body, timeoutMs) {
   } finally {
     clearTimeout(timer);
   }
-}
-
-// 道童即時對話：預設走站方 Cloudflare Worker (金鑰留在伺服端)；開發者模式可改用自訂端點或個人 Key
-async function callGeminiLive(query, customKey, customEndpoint) {
-  const articleTitles = (window.DaoArticlesData || []).map(a => a.title);
-  const history = daoBoyHistory.slice();
-
-  // 站方 Worker 或開發者代理：同一組請求格式
-  const proxyUrl = customEndpoint || (customKey ? '' : `${getWorkerUrl()}/chat`);
-  if (proxyUrl) {
-    const res = await postJson(proxyUrl, { prompt: query, history, lang: currentLang, currentLang, articleTitles }, 20000);
-    const data = await res.json().catch(() => ({}));
-    if (res.ok && data.reply) return data.reply;
-    throw new Error(data.error || `HTTP ${res.status}`);
-  }
-
-  // 開發者直連 (?dev=1 且填了個人 Key)：金鑰放 header，不進 URL
-  const model = (typeof DaoSanctuaryData !== 'undefined' && DaoSanctuaryData.config?.gemini?.model) || "gemini-flash-latest";
-  const articlesContext = (window.DaoArticlesData || []).map(a => `【${a.title}】(${a.categoryName}): ${a.excerpt}`).join('\n');
-  const tw = currentLang === 'zh-tw';
-  const systemInstruction = `你是深山的幸福道場守門道童，簡家旗（Bob Chien / 大道至簡）在台灣南投深山茶園的守門童子。
-角色定位：平靜留白、有溫度、像山風拂過；絕不生硬、絕不說教、嚴禁任何 emoji、少用驚嘆號。
-哲學底層：融通老莊「為道日損」、熱力學「耗散結構」與「身體先於大腦」。
-語言規範：${tw ? '繁體中文回答，貨幣金額一律使用 NT$（新台幣）' : '簡體中文回答，貨幣金額一律使用 ¥（人民幣）'}。
-主理人長文專欄庫：
-${articlesContext}
-四柱產品定價：幸福企業諮詢(${tw ? 'NT$ 68,000起' : '¥15,000起'})、生命回憶錄(${tw ? 'NT$ 220,000起' : '¥49,800起'})、幸福餐桌IP(${tw ? 'NT$ 450,000起' : '¥100,000起'})、高管退修會(${tw ? 'NT$ 680,000起' : '¥150,000起'})。
-回答在 150–260 字之間，點到即止，引導對方回歸身體、翻閱長文或前往問道之鏡預約。`;
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": customKey },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: systemInstruction }] },
-      contents: [
-        ...history.map(h => ({ role: h.role, parts: [{ text: h.text }] })),
-        { role: "user", parts: [{ text: query }] }
-      ],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
-    })
-  });
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error?.message || `HTTP ${res.status}`);
-  }
-  const data = await res.json();
-  const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (reply) return reply;
-  throw new Error("Empty candidate");
 }
 
 // 本地長文與心法智庫 RAG 兜底匹配
@@ -633,7 +463,6 @@ function initGlobalKeyboardAndHash() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeZenReader();
-      closeDaoBoyModal();
       closePetalDrawer();
     }
   });
@@ -658,13 +487,14 @@ function initGlobalKeyboardAndHash() {
 // ==========================================
 // 4. 問道之鏡
 // ==========================================
-// 表單送達：POST 到站方 Worker (伺服端產生通關碼、存檔並寄信給主理人)
-// 回傳 { ok:true, code } 或 { ok:false }；未設定 Worker 或任何失敗都回 ok:false，由呼叫端走手動備援
+// 表單送達：POST 到 Cloudflare Worker /api/dao (happy 倉庫 executive-table/worker/dao.js)
+// 伺服端產生通關碼、存檔並寄信給主理人。回傳 { ok:true, code } 或 { ok:false }；
+// 未設定網址或任何失敗都回 ok:false，由呼叫端走手動備援
 async function submitBooking(payload) {
-  const base = getWorkerUrl();
-  if (!base) return { ok: false };
+  const url = (typeof DaoSanctuaryData !== 'undefined' && DaoSanctuaryData.config?.api?.bookingUrl) || '';
+  if (!url) return { ok: false };
   try {
-    const res = await postJson(`${base}/booking`, payload, 15000);
+    const res = await postJson(url, payload, 15000);
     const data = await res.json().catch(() => ({}));
     if (res.ok && data.ok && data.code) return { ok: true, code: data.code };
   } catch (err) {

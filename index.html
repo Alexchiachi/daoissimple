@@ -161,12 +161,9 @@
             <div style="display: flex; gap: 16px; align-items: center;">
               <div class="daoboy-avatar-square">童</div>
               <div class="daoboy-meta">
-                <h3 style="display: flex; align-items: center; gap: 8px;">深山道童 <span id="daoboy-live-indicator" class="daoboy-badge-live" style="color: var(--tea); border-color: var(--tea);">活體心智 · 雲端託管</span></h3>
-                <p id="daoboy-engine-label">Google Gemini Flash 雲端託管活體心智對談中</p>
+                <h3 style="display: flex; align-items: center; gap: 8px;">深山道童 <span id="daoboy-live-indicator" class="daoboy-badge-live" style="color: var(--tea); border-color: var(--tea);">本地智庫</span></h3>
+                <p id="daoboy-engine-label">長文專欄與老莊心法即時檢索中</p>
               </div>
-            </div>
-            <div class="daoboy-header-actions">
-              <button id="daoboy-gear-btn" class="daoboy-gear-btn" onclick="openDaoBoyModal()" title="活體心智配置" style="display: none;">活體配置</button>
             </div>
           </div>
 
@@ -416,38 +413,6 @@
       <button class="zen-reader-close" onclick="closeZenReader()" title="關閉閱讀卷 (Esc)">✕</button>
       <div id="zen-reader-content" class="zen-article-container">
         <!-- 由 articles.js 動態渲染 -->
-      </div>
-    </div>
-  </div>
-
-  <!-- 道童活體心智配置彈窗 (Gemini API Settings) -->
-  <div id="daoboy-modal-overlay" class="drawer-overlay" onclick="closeDaoBoyModal(event)">
-    <div class="drawer-panel" onclick="event.stopPropagation()" style="max-width: 480px;">
-      <button class="drawer-close-btn" onclick="closeDaoBoyModal()">✕</button>
-      <div style="margin-top: var(--s-3);">
-        <span class="eyebrow">Google Gemini Flash</span>
-        <h3 style="margin-top: 6px; font-weight: 300;">深山道童 · 活體心智配置</h3>
-        <p style="font-size: 0.88rem; color: var(--ink-soft); line-height: 1.8; margin-top: 10px;">
-          此為開發者除錯入口（網址加上 ?dev=1 才會顯示）。道童預設透過雲端代理對話，訪客不需要任何金鑰。<br>
-          測試時可在下方輸入個人的 Google AI Studio API Key 或其他代理端點，僅保存於本機瀏覽器。
-        </p>
-
-        <div style="margin-top: var(--s-3);">
-          <label style="display: block; font-size: 0.85rem; color: var(--mist); margin-bottom: 6px;">Google Gemini API Key（保存在本地瀏覽器）</label>
-          <input type="password" id="gemini-key-input" class="daoboy-input" placeholder="AIzaSy..." style="width: 100%; margin-bottom: 8px;">
-          <small style="color: var(--mist); font-size: 0.75rem; display: block;">前往 <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--tea);">Google AI Studio</a> 免費獲取 Key（每日 1,500 次免費）。</small>
-        </div>
-
-        <div style="margin-top: var(--s-3);">
-          <label style="display: block; font-size: 0.85rem; color: var(--mist); margin-bottom: 6px;">或自定義代理端點（選填，如 Cloudflare Worker）</label>
-          <input type="text" id="gemini-endpoint-input" class="daoboy-input" placeholder="https://your-daoboy-worker.workers.dev" style="width: 100%;">
-        </div>
-
-        <div style="margin-top: var(--s-4); display: flex; gap: 10px;">
-          <button class="btn-cta" style="flex: 1; padding: 10px;" onclick="saveDaoBoySettings()">儲存並開啟活體 →</button>
-          <button class="btn-cta quiet" style="padding: 10px;" onclick="clearDaoBoySettings()">清空配置</button>
-        </div>
-        <div id="daoboy-modal-status" style="margin-top: 12px; font-size: 0.82rem; color: var(--tea); text-align: center;"></div>
       </div>
     </div>
   </div>
