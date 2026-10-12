@@ -1035,6 +1035,162 @@ p, li, dd, figcaption, blockquote {
   text-align: center;
 }
 
+/* --- 聯絡通道網格與印記卡片 (傳承 happy/connect.html 經典 1px 細線隔間排版) --- */
+.contact-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  margin: var(--s-3) 0;
+  border: 1px solid var(--line);
+  text-align: left;
+}
+
+.contact-mini-card {
+  background: var(--paper);
+  padding: var(--s-3) var(--s-2);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 0;
+  transition: background var(--dur-ui) ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contact-mini-card:hover {
+    background: #FFF;
+  }
+}
+
+.contact-mini-card .icon-mark {
+  font-family: var(--font-han);
+  font-size: 1.2rem;
+  color: var(--tea);
+  border: 1px solid var(--tea);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--s-2);
+  line-height: 1;
+}
+
+.contact-mini-card h4 {
+  font-family: var(--font-han);
+  font-size: 1.05rem;
+  letter-spacing: 0.12em;
+  font-weight: 400;
+  margin-bottom: 6px;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.contact-mini-card .value {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  color: var(--ink);
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.contact-mini-card .value-han {
+  font-family: var(--font-han);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+}
+
+.contact-mini-card .desc {
+  font-size: 0.82rem;
+  color: var(--mist);
+  line-height: 1.6;
+  margin-bottom: var(--s-2);
+  text-wrap: pretty;
+}
+
+.contact-card-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.contact-sub-btn {
+  font-family: var(--font-han);
+  font-size: 0.84rem;
+  letter-spacing: 0.06em;
+  padding: 7px 12px;
+  background: var(--paper-deep);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 0;
+  white-space: nowrap;
+  transition: all var(--dur-ui) ease-out;
+}
+
+.contact-sub-btn:hover {
+  background: var(--tea);
+  color: var(--paper);
+  border-color: var(--tea);
+}
+
+.contact-sub-btn.primary {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.contact-sub-btn.primary:hover {
+  background: var(--tea);
+  border-color: var(--tea);
+}
+
+.booking-code-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 18px;
+  background: var(--paper);
+  border: 1px dashed var(--tea);
+  margin: 8px 0 6px;
+}
+
+.btn-copy-code {
+  font-family: var(--font-han);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  padding: 6px 14px;
+  background: var(--tea);
+  color: var(--paper);
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-ui) ease-out;
+}
+
+.btn-copy-code:hover {
+  background: var(--ink);
+}
+
+.code-copy-status {
+  font-size: 0.85rem;
+  color: var(--tea);
+  font-family: var(--font-han);
+  display: block;
+  min-height: 22px;
+  margin-top: 4px;
+  letter-spacing: 0.05em;
+}
+
 /* --- 朱印 (.seal) 典雅收尾 --- */
 .seal {
   text-align: center;

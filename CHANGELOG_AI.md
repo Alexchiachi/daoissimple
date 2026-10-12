@@ -214,6 +214,41 @@ daoissimple/
   - `DESIGN.md`：建立第四章「防孤字與語意排版紀律」。
   - `tools/build_zhcn.py`：自動同步簡體中文版。
 
+### [2026-10-12 16:30] 全域排版技能封裝與聯絡通道同步升級 (參考 happy/connect.html)
+* **起因**：
+  主理人指示：
+  1. 將整套文字排版邏輯與方法寫入技能（Skill），使其能套用到本機所有專案倉庫中。
+  2. 參考大道至簡官方網站聯絡方式（`https://alexchiachi.github.io/happy/connect.html`），同步優化問道仙人網頁的連繫體系。
+* **重大演進與技術實作**：
+  1. **建立全域技能 `dao-zen-typography`**：
+     - 路徑：`~/.gemini/config/skills/dao-zen-typography/SKILL.md`。
+     - 提煉「大道至簡・禪意字體排版與防孤字規範」為通用技能資產，涵蓋四重防孤字規範（`text-wrap: balance`、`text-wrap: pretty`、中文語意片段 `.ph`、數據與按鈕 `nowrap`）、標題清空標點符號、字間距置中補償、直角細線極簡框架與標準 CSS 模板。
+  2. **全面同步 `happy/connect.html` 真實官方聯絡體系**：
+     - **數據真理源更新 (`js/content.js`)**：
+       - 電子郵件：`dadaoissimple@gmail.com`
+       - LINE 官方帳號：`@473nnjul`（`https://line.me/R/ti/p/@473nnjul`）
+       - 臉書專頁：`https://www.facebook.com/dream2walker`
+       - 微信秘書號：`daoissimple_live`
+       - 微信公眾號：`簡家旗-出租大書`
+     - **「問道之鏡」結果面板重構 (`index.html`)**：
+       - 通關碼（`#booking-code-span`）整合「一鍵複製通關碼」按鈕，具備平靜內嵌狀態微反饋（告別原生侵入式 `alert()`）。
+       - 台灣與海外通道：呈現「賴」、「信」、「臉」三大印記卡片與雲端日曆按鈕，支援一鍵加好友、複製 ID、撰寫郵件與複製信箱。
+       - 大陸專屬通道：呈現「微」（微信秘書）與「微」（微信公眾號）雙卡片，支援一鍵複製微訊號、打開微信（`weixin://`）與複製公眾號名稱。
+       - 排版美學傳承 `happy` 經典的 1px 細線隔間網格（`.contact-mini-grid`）與直角素雅風貌。
+     - **腳本與體驗增強 (`js/app.js`)**：
+       - 新增無侵入剪貼簿複製函數 `copyBookingCode()` 與 `copyText(text, btnElement)`，支援 Clipboard API 與降級兼容處理。
+     - **簡體版在地化潤飾 (`tools/build_zhcn.py`)**：
+       - 精確轉換在地習慣用語（「拷贝」->「复制」、「信道」->「通道」），完成 `zh-cn/index.html` 同步編譯。
+* **影響範圍**：
+  - `~/.gemini/config/skills/dao-zen-typography/SKILL.md`（新建全域技能）
+  - `css/style.css`
+  - `index.html`
+  - `js/app.js`
+  - `js/content.js`
+  - `tools/build_zhcn.py`
+  - `zh-cn/index.html`
+  - `CHANGELOG_AI.md`
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)

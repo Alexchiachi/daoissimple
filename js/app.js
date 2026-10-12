@@ -667,6 +667,72 @@ window.switchChannel = function(channel) {
   }
 };
 
+window.copyBookingCode = function() {
+  const codeSpan = document.getElementById('booking-code-span');
+  const code = codeSpan ? codeSpan.textContent.trim() : '';
+  const btn = document.getElementById('btn-copy-booking');
+  const tip = document.getElementById('booking-code-tip');
+  if (!code) return;
+
+  copyStringToClipboard(code, () => {
+    if (btn) {
+      const origText = btn.textContent;
+      btn.textContent = '✓ 已複製';
+      btn.style.background = 'var(--ink)';
+      setTimeout(() => {
+        btn.textContent = origText;
+        btn.style.background = '';
+      }, 1800);
+    }
+    if (tip) {
+      tip.textContent = '✓ 通關碼已複製至剪貼簿，請於連繫時回傳以確認排程';
+      setTimeout(() => {
+        tip.textContent = '';
+      }, 3000);
+    }
+  });
+};
+
+window.copyText = function(text, btn) {
+  if (!text) return;
+  copyStringToClipboard(text, () => {
+    if (btn) {
+      const origText = btn.textContent;
+      btn.textContent = '✓ 已複製';
+      setTimeout(() => {
+        btn.textContent = origText;
+      }, 1500);
+    }
+  });
+};
+
+function copyStringToClipboard(str, onSuccess) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(str).then(onSuccess).catch(() => {
+      fallbackCopy(str, onSuccess);
+    });
+  } else {
+    fallbackCopy(str, onSuccess);
+  }
+}
+
+function fallbackCopy(str, onSuccess) {
+  const el = document.createElement('textarea');
+  el.value = str;
+  el.setAttribute('readonly', '');
+  el.style.position = 'absolute';
+  el.style.left = '-9999px';
+  document.body.appendChild(el);
+  el.select();
+  try {
+    document.execCommand('copy');
+    if (onSuccess) onSuccess();
+  } catch (err) {
+    console.error('複製失敗', err);
+  }
+  document.body.removeChild(el);
+}
+
 // ==========================================
 // 5. 滾動進場顯現動畫
 // ==========================================

@@ -42,6 +42,10 @@ def main():
     converted = converted.replace('src="js/content.js"', 'src="../js/content.js"')
     converted = converted.replace('src="js/app.js"', 'src="../js/app.js"')
     
+    # 習慣用語潤飾 (「拷贝」->「复制」，「信道」->「通道」)
+    converted = converted.replace('拷贝', '复制')
+    converted = converted.replace('信道', '通道')
+    
     # 調整語系切換按鈕，點擊返回繁體版首頁
     converted = re.sub(
         r'<button id="lang-toggle-btn"[^>]*>.*?</button>',

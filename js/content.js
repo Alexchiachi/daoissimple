@@ -24,7 +24,11 @@ const DaoSanctuaryData = {
       }
     },
     contact: {
-      lineUrl: "https://alexchiachi.github.io/happy/inner-flow/",
+      email: "dadaoissimple@gmail.com",
+      lineId: "@473nnjul",
+      lineUrl: "https://line.me/R/ti/p/@473nnjul",
+      facebookUrl: "https://www.facebook.com/dream2walker",
+      wechatOfficial: "簡家旗-出租大書",
       wechatId: "daoissimple_live",
       bookingCalendarUrl: "https://alexchiachi.github.io/happy/inner-flow/",
       githubRepo: "https://github.com/Alexchiachi/daoissimple"

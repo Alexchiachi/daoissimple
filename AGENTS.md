@@ -77,6 +77,25 @@
 * **收尾朱印 (`.seal`)**：每頁結尾以一方「大道至簡」朱紅方印優雅收尾。
 * **嚴格去裝飾**：不用驚嘆號、不用 emoji（禁止 🌐、🍵、🪞 等圖示）、不寫促銷限時字眼。
 
+### 4. 文字排版與防孤字規範（全域技能 `dao-zen-typography`）
+* **四重折行防線**：
+  * `text-wrap: balance`：標題與卡片大標等長平衡。
+  * `text-wrap: pretty`：內文、說明與問答氣泡避開末行孤字。
+  * 中文語意切片 `<span class="ph">`：保持詞語完整性，換行只發生在短語之間。
+  * 數據與按鈕 `white-space: nowrap` + `tabular-nums`：禁止數字與按鈕折斷。
+* **全域技能資產**：`~/.gemini/config/skills/dao-zen-typography/SKILL.md`，本機所有倉庫均一體適用。
+
+### 5. 官方聯絡體系（傳承 `Alexchiachi/happy/connect.html`）
+* **通道真理源**：
+  * 電子郵件：`dadaoissimple@gmail.com`
+  * LINE 官方帳號：`@473nnjul`（`https://line.me/R/ti/p/@473nnjul`）
+  * 臉書專頁：`facebook.com/dream2walker`
+  * 微信秘書號：`daoissimple_live`
+  * 微信公眾號：`簡家旗-出租大書`
+* **交互規範**：
+  * 問道之鏡生成通關碼後，提供「一鍵複製」與內嵌狀態微反饋，禁止侵入式 `alert()`。
+  * 聯絡卡片維持 1px 細線隔間、圓形單字印記（「信」、「賴」、「臉」、「微」）與直角按鈕。
+
 ---
 
 ## 四、 專案架構與檔案清單

@@ -195,7 +195,7 @@
           <h2 class="h-section"><span class="ph">问道之镜</span><i class="gap"> </i><span class="ph">预约过滤</span></h2>
           <p class="section-desc">
             <span class="ph">这不是一份报名表</span><i class="gap"> </i><span class="ph">而是一面诚实的镜子</span><br>
-            <span class="ph">每周仅开放一至二席深度对谈</span><i class="gap"> </i><span class="ph">完成心性回答后</span><span class="ph">即可锁定日历信道</span>
+            <span class="ph">每周仅开放一至二席深度对谈</span><i class="gap"> </i><span class="ph">完成心性回答后</span><span class="ph">即可锁定日历通道</span>
           </p>
         </div>
 
@@ -223,45 +223,115 @@
             </div>
 
             <button type="submit" class="btn-cta" style="width: 100%; padding: 14px;">
-              映照内心 打开预约信道 →
+              映照内心 打开预约通道 →
             </button>
+            <p style="font-size: 0.82rem; color: var(--mist); text-align: center; margin-top: 10px; text-wrap: pretty;">
+              <span class="ph">不急，慢慢写。</span><span class="ph">我们只服务清醒交付转化者。</span><span class="ph">送出后即派发结缘通关码。</span>
+            </p>
           </form>
 
-          <!-- 提交后的双轨预约面板 -->
+          <!-- 提交后的双轨预约面板 (同步 happy/connect.html 官方联系体系) -->
           <div id="mirror-result-box" style="display: none;">
             <div style="text-align: center; margin-bottom: var(--s-3);">
-              <h3 style="font-size: 1.4rem; margin-bottom: 6px;">镜面映照清晰 · 结缘通关码</h3>
-              <p style="font-family: var(--font-display); color: var(--tea); font-size: 1.6rem; letter-spacing: 0.15em;" id="booking-code-span">
-                DAO-882319
+              <h3 style="font-size: 1.35rem; margin-bottom: 6px; letter-spacing: 0.08em; text-wrap: balance;">
+                <span class="ph">镜面映照清晰</span> · <span class="ph">结缘通关码</span>
+              </h3>
+              <div class="booking-code-wrapper">
+                <span style="font-family: var(--font-display); color: var(--tea); font-size: 1.6rem; letter-spacing: 0.15em;" id="booking-code-span">
+                  DAO-882319
+                </span>
+                <button type="button" class="btn-copy-code" id="btn-copy-booking" onclick="copyBookingCode()">复制通关码</button>
+              </div>
+              <div id="booking-code-tip" class="code-copy-status"></div>
+              <p style="color: var(--mist); font-size: 0.88rem; text-wrap: pretty;">
+                <span class="ph">请凭此通关码</span><span class="ph">选择您方便的连系管道</span><span class="ph">锁定专属对话时段：</span>
               </p>
-              <p style="color: var(--mist); font-size: 0.88rem;">请凭此通关码 选择您的所在地管道锁定日历时段：</p>
             </div>
 
             <div class="channel-tabs">
-              <button class="channel-tab-btn active" id="tab-tw" onclick="switchChannel('tw')">台湾与国际信道</button>
-              <button class="channel-tab-btn" id="tab-cn" onclick="switchChannel('cn')">大陆微信专属信道</button>
+              <button class="channel-tab-btn active" id="tab-tw" onclick="switchChannel('tw')">台湾与海外通道</button>
+              <button class="channel-tab-btn" id="tab-cn" onclick="switchChannel('cn')">大陆专属通道</button>
             </div>
 
+            <!-- 台湾与海外通道 (LINE、信箱、脸书、日历) -->
             <div id="content-tw" class="channel-content">
-              <p style="margin-bottom: var(--s-3); color: var(--ink-soft); font-size: 0.92rem;">
-                点击下方按钮加入 LINE / 日历专属对话，回传您的通关码，道场将自动派发专属时段：
+              <p style="margin-bottom: var(--s-2); color: var(--ink-soft); font-size: 0.9rem; text-wrap: pretty;">
+                <span class="ph">点击下方任一管道回传通关码，</span><span class="ph">我们将与您确认预约期程：</span>
               </p>
-              <a href="https://alexchiachi.github.io/happy/inner-flow/" target="_blank" class="btn-cta" style="display: inline-block;">
-                打开专属 LINE / 日历预约 →
-              </a>
+              
+              <div class="contact-mini-grid">
+                <!-- 赖 (LINE) -->
+                <div class="contact-mini-card">
+                  <div class="icon-mark">赖</div>
+                  <h4>LINE 官方帐号</h4>
+                  <div class="value">@473nnjul</div>
+                  <div class="desc"><span class="ph">最即时的对话通道，</span><span class="ph">加好友直接回传通关码</span></div>
+                  <div class="contact-card-actions">
+                    <a class="contact-sub-btn primary" href="https://line.me/R/ti/p/@473nnjul" target="_blank" rel="noopener">加 LINE 洽询</a>
+                    <button type="button" class="contact-sub-btn" onclick="copyText('@473nnjul', this)">复制 ID</button>
+                  </div>
+                </div>
+
+                <!-- 信 (Email) -->
+                <div class="contact-mini-card">
+                  <div class="icon-mark">信</div>
+                  <h4>电子邮件</h4>
+                  <div class="value"><a href="mailto:dadaoissimple@gmail.com" style="color: inherit; text-decoration: underline;">dadaoissimple@gmail.com</a></div>
+                  <div class="desc"><span class="ph">写一封信来，不急慢慢写，</span><span class="ph">我们会慢慢看、慢慢回</span></div>
+                  <div class="contact-card-actions">
+                    <a class="contact-sub-btn" href="mailto:dadaoissimple@gmail.com">写一封信</a>
+                    <button type="button" class="contact-sub-btn" onclick="copyText('dadaoissimple@gmail.com', this)">复制信箱</button>
+                  </div>
+                </div>
+
+                <!-- 脸 (Facebook) -->
+                <div class="contact-mini-card">
+                  <div class="icon-mark">脸</div>
+                  <h4>脸书专页</h4>
+                  <div class="value"><a href="https://www.facebook.com/dream2walker" target="_blank" rel="noopener" style="color: inherit;">dream2walker</a></div>
+                  <div class="desc"><span class="ph">日常纪录与即时消息，</span><span class="ph">私讯粉专亦可对接调度</span></div>
+                  <div class="contact-card-actions">
+                    <a class="contact-sub-btn" href="https://www.facebook.com/dream2walker" target="_blank" rel="noopener">前往脸书</a>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top: var(--s-3); padding-top: var(--s-2); border-top: 1px dashed var(--line);">
+                <a href="https://alexchiachi.github.io/happy/inner-flow/" target="_blank" class="btn-cta" style="display: inline-block;">
+                  打开云端日历时段表 →
+                </a>
+              </div>
             </div>
 
+            <!-- 大陆专属通道 (微信公众号、微信秘书号) -->
             <div id="content-cn" class="channel-content" style="display: none;">
-              <p style="margin-bottom: var(--s-2); color: var(--ink-soft); font-size: 0.92rem;">
-                大陆企业与个人客户，请加入道场专属微信秘书，备注通关码以完成对话：
+              <p style="margin-bottom: var(--s-2); color: var(--ink-soft); font-size: 0.9rem; text-wrap: pretty;">
+                <span class="ph">大陆企业与个人客户，</span><span class="ph">请加入微信秘书或关注公众号：</span>
               </p>
-              <div style="background: var(--paper); display: inline-block; padding: 10px 24px; border: 1px solid var(--line); font-family: var(--font-display); letter-spacing: 0.1em; margin-bottom: var(--s-2);">
-                微信号：daoissimple_live
-              </div>
-              <div>
-                <button class="btn-cta" onclick="alert('已拷贝微信号：daoissimple_live，请至微信搜索添加。')">
-                  拷贝微信号 →
-                </button>
+
+              <div class="contact-mini-grid">
+                <!-- 微 (微信秘书号) -->
+                <div class="contact-mini-card">
+                  <div class="icon-mark">微</div>
+                  <h4>微信秘书</h4>
+                  <div class="value">daoissimple_live</div>
+                  <div class="desc"><span class="ph">道场专属微信秘书，</span><span class="ph">添加好友时请备注您的通关码</span></div>
+                  <div class="contact-card-actions">
+                    <button type="button" class="contact-sub-btn primary" onclick="copyText('daoissimple_live', this)">复制微信号</button>
+                    <a class="contact-sub-btn" href="weixin://">打开微信</a>
+                  </div>
+                </div>
+
+                <!-- 号 (微信公众号) -->
+                <div class="contact-mini-card">
+                  <div class="icon-mark">微</div>
+                  <h4>微信公众号</h4>
+                  <div class="value value-han">简家旗-出租大书</div>
+                  <div class="desc"><span class="ph">至微信搜索公众号关注，</span><span class="ph">可在后台留言通关码连系</span></div>
+                  <div class="contact-card-actions">
+                    <button type="button" class="contact-sub-btn" onclick="copyText('简家旗-出租大书', this)">复制公众号名称</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
