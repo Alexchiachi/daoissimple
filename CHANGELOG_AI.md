@@ -307,6 +307,18 @@ daoissimple/
   - `AGENTS.md`
   - `CHANGELOG_AI.md`
 
+### [2026-10-12] 語系切換修正、道童快速提問零成本化、鐵律自動檢查 (tools/check.py)
+* **起因**：全站優化檢視後，主理人指示先做三項低風險高收益改動。
+* **技術與產出**：
+  1. **語系切換 (`js/app.js`)**：繁體首頁的「简体」鈕原本找不到 `#link-to-zhcn`，只會重繪動態區塊，造成「繁體靜態殼加簡體動態內容」的混語頁，且狀態存入 `localStorage`。現改為繁簡各為獨立頁面，按鈕直接跳轉 `zh-cn/` 或 `../index.html`，並保留 hash（`#read=...` 長文網址與錨點可跨語系）。不再讀寫 `dao_lang`，並於載入時清除舊殘留值。
+  2. **道童快速提問 (`js/app.js`)**：快速提問按鈕改為傳索引，直接顯示 `content.js` 的 `daoBoyQuestions[].a` 預寫答案，不再呼叫 Gemini（零延遲、零額度、品質由主理人把關）。自由輸入維持 Gemini 加本地兜底。抽出 `daoBoyMirrorHint()` 統一「問道之鏡」引導句。
+  3. **鐵律檢查 (`tools/check.py`，新增)**：把 AGENTS.md / DESIGN.md 的鐵律變成會失敗的測試：貨幣分流（繁體無 `¥`、簡體無 `NT$`、`twPrice`/`cnPrice` 欄位、無「約」）、標題無標點（HTML h1-h3 與資料檔 title）、無 emoji（允許 ✓ ✕ 排印符號）、`border-radius` 僅 0（`.icon-mark` 圓印記例外）、字重不得 600 以上、`hero-title-line` 置中補償、錨點與腳本路徑完整、簡體版語系標籤。金鑰內嵌目前為「警告」不阻擋，待改 Worker 後升為錯誤。
+  4. **CI**：`pages.yml` 於簡體版建置後加入檢查步驟；新增 `check.yml`，所有非 main 分支推送與 PR 皆執行檢查，並驗證 `zh-cn/index.html` 已與建置結果一致。
+  5. **既有違規修正**：移除 `index.html` 的 `⚙️` 與 `app.js` 的 `👉`（原違反無 emoji 規範）。
+* **影響範圍**：`js/app.js`、`index.html`、`zh-cn/index.html`（重建）、`tools/check.py`、`.github/workflows/pages.yml`、`.github/workflows/check.yml`、`CHANGELOG_AI.md`、`AGENTS.md`
+* **自檢**：check.py 對正常倉庫通過；以注入違規的副本驗證會正確失敗（11 項）；Playwright 實測：舊 `dao_lang` 被清除、快速提問零 API 請求、繁簡互跳保留 hash、無頁面錯誤。
+* **待辦（已知）**：Gemini 金鑰內嵌（改 Cloudflare Worker）、問道之鏡表單未送達、簡體版動態內容仍以小字典轉換。
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)

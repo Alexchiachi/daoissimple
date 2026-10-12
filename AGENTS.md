@@ -117,6 +117,7 @@ daoissimple/
 │   └── app.js                   # 互動引擎（繁簡分流、道童問答、問道之鏡、抽屜）
 ├── tools/
 │   ├── build_zhcn.py            # 繁簡在地化建置腳本（OpenCC tw2sp）
+│   ├── check.py                 # 鐵律自動檢查（貨幣、標題標點、emoji、直角、字重、錨點）
 │   └── push.py                  # 一鍵建置、繁簡同步與 GitHub 免密推送腳本
 └── .github/workflows/pages.yml  # GitHub Pages 自動發布 CI/CD
 ```
@@ -135,7 +136,7 @@ daoissimple/
    ```bash
    python3 tools/build_zhcn.py
    ```
-4. **驗證與一鍵推送**：
+4. **驗證與一鍵推送**：先執行 `python3 tools/check.py`，必須通過（CI 也會執行）。
    ```bash
    python3 tools/push.py "語意 Commit 訊息"
    ```

@@ -21,29 +21,29 @@ document.addEventListener('DOMContentLoaded', () => {
 // 1. 語系切換模組 (繁簡獨立判斷)
 // ==========================================
 // 判斷當前頁面是 zh-cn 目錄還是根目錄
+// 繁簡各自是獨立頁面 (zh-cn/index.html 由 build_zhcn.py 編譯)，不再於同頁混合切換
 const isZhCnPage = window.location.pathname.includes('/zh-cn/');
-let currentLang = isZhCnPage ? 'zh-cn' : (localStorage.getItem('dao_lang') || 'zh-tw');
+let currentLang = isZhCnPage ? 'zh-cn' : 'zh-tw';
 
 function initLanguage() {
   const toggleBtn = document.getElementById('lang-toggle-btn');
+  // 簡體頁的切換鈕由 build_zhcn.py 編譯為 <a>，同樣於點擊時帶上 hash
+  const zhBackLink = document.querySelector('a.lang-switch-btn');
+  if (zhBackLink) {
+    zhBackLink.addEventListener('click', () => {
+      zhBackLink.href = '../index.html' + window.location.hash;
+    });
+  }
+  try { localStorage.removeItem('dao_lang'); } catch (e) { /* 清除舊版混語殘留設定 */ }
   if (!toggleBtn) return;
 
   updateLangButtonText(toggleBtn);
 
   toggleBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    if (isZhCnPage) {
-      window.location.href = '../index.html';
-    } else {
-      currentLang = currentLang === 'zh-tw' ? 'zh-cn' : 'zh-tw';
-      localStorage.setItem('dao_lang', currentLang);
-      if (currentLang === 'zh-cn' && document.getElementById('link-to-zhcn')) {
-        window.location.href = 'zh-cn/index.html';
-      } else {
-        updateLangButtonText(toggleBtn);
-        renderDynamicContent();
-      }
-    }
+    // 保留 hash，長文網址 (#read=...) 與錨點在兩個語系間可互相跳轉
+    const hash = window.location.hash;
+    window.location.href = (isZhCnPage ? '../index.html' : 'zh-cn/') + hash;
   });
 }
 
@@ -429,8 +429,8 @@ function initDaoBoyChat() {
   if (!chatWindow || !input || !sendBtn) return;
 
   if (quickContainer) {
-    quickContainer.innerHTML = DaoSanctuaryData.daoBoyQuestions.map(item => `
-      <button class="quick-btn" onclick="askDaoBoy('${item.q.replace(/'/g, "\\'")}')">
+    quickContainer.innerHTML = DaoSanctuaryData.daoBoyQuestions.map((item, idx) => `
+      <button class="quick-btn" onclick="askDaoBoy(${idx})">
         ${t(item.q)}
       </button>
     `).join('');
@@ -455,9 +455,27 @@ function initDaoBoyChat() {
   });
 }
 
-window.askDaoBoy = function(question) {
-  handleUserQuery(question);
+// 快速提問：直接採用 content.js 預寫答案，零延遲、零 API 額度、品質由主理人把關
+window.askDaoBoy = function(idx) {
+  const item = DaoSanctuaryData.daoBoyQuestions[idx];
+  const chatWindow = document.getElementById('daoboy-chat-window');
+  if (!item || !chatWindow) return;
+
+  const userBubble = document.createElement('div');
+  userBubble.className = 'chat-bubble user';
+  userBubble.textContent = t(item.q);
+  chatWindow.appendChild(userBubble);
+
+  const botBubble = document.createElement('div');
+  botBubble.className = 'chat-bubble bot';
+  botBubble.innerHTML = `${t(item.a)}${daoBoyMirrorHint()}`;
+  chatWindow.appendChild(botBubble);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
 };
+
+function daoBoyMirrorHint() {
+  return `<br><br><small style="color: var(--tea);">${t('若需與簡家旗深度對話 請前往下方「問道之鏡」完成心性過濾')}</small>`;
+}
 
 async function handleUserQuery(query) {
   const chatWindow = document.getElementById('daoboy-chat-window');
@@ -484,7 +502,7 @@ async function handleUserQuery(query) {
   if (apiKey || endpoint) {
     try {
       const liveAnswer = await callGeminiLive(query, apiKey, endpoint);
-      typingBubble.innerHTML = `${t(liveAnswer)}<br><br><small style="color: var(--tea);">👉 ${t('若需與簡家旗深度對話 請前往下方「問道之鏡」完成心性過濾')}</small>`;
+      typingBubble.innerHTML = `${t(liveAnswer)}${daoBoyMirrorHint()}`;
       chatWindow.scrollTop = chatWindow.scrollHeight;
       return;
     } catch (err) {
@@ -495,7 +513,7 @@ async function handleUserQuery(query) {
   // 本地智庫無感降級與精準匹配
   setTimeout(() => {
     const fallbackAnswer = fallbackLocalWisdom(query);
-    typingBubble.innerHTML = `${t(fallbackAnswer)}<br><br><small style="color: var(--tea);">👉 ${t('若需與簡家旗深度對話 請前往下方「問道之鏡」完成心性過濾')}</small>`;
+    typingBubble.innerHTML = `${t(fallbackAnswer)}${daoBoyMirrorHint()}`;
     chatWindow.scrollTop = chatWindow.scrollHeight;
   }, 500);
 }
