@@ -28,4 +28,4 @@ jobs:
       - name: Syntax check frontend
         run: node --check js/app.js
       - name: Verify zh-cn is up to date
-        run: git diff --exit-code -- zh-cn/index.html
+        run: git diff --exit-code -- zh-cn/

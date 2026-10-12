@@ -19,6 +19,9 @@ SITE_FILES = {
     "js/app.js": ROOT / "js" / "app.js",
     "js/content.js": ROOT / "js" / "content.js",
     "js/articles.js": ROOT / "js" / "articles.js",
+    "zh-cn/content.js": ROOT / "zh-cn" / "content.js",
+    "zh-cn/articles.js": ROOT / "zh-cn" / "articles.js",
+    "zh-cn/app.js": ROOT / "zh-cn" / "app.js",
 }
 
 errors = []
@@ -59,6 +62,15 @@ def check_currency():
     for m in re.finditer(r"NT\$", zh):
         fail("zh-cn/index.html", zh, m.start(), "簡體版出現「NT$」，簡體一律使用 ¥")
 
+    for name in ("zh-cn/content.js", "zh-cn/articles.js", "zh-cn/app.js"):
+        text = read(name)
+        for m in re.finditer(r"NT\$", text):
+            line_start = text.rfind("\n", 0, m.start()) + 1
+            line = text[line_start:text.find("\n", m.start())].lstrip()
+            if line.startswith(("//", "*", "/*")):
+                continue  # 註解中的說明文字不會顯示給訪客
+            fail(name, text, m.start(), "簡體版 JS 出現「NT$」，簡體一律使用 ¥")
+
     content = read("js/content.js")
     for m in re.finditer(r'twPrice(?:Detail)?:\s*"([^"]*)"', content):
         v = m.group(1)
@@ -74,7 +86,7 @@ def check_currency():
 
 def check_titles():
     # 資料檔 title 欄位
-    for name in ("js/content.js", "js/articles.js"):
+    for name in ("js/content.js", "js/articles.js", "zh-cn/content.js", "zh-cn/articles.js"):
         text = read(name)
         for m in re.finditer(r'\btitle:\s*"([^"]*)"', text):
             if TITLE_PUNCT.search(m.group(1)):
@@ -89,7 +101,8 @@ def check_titles():
 
 
 def check_no_emoji():
-    for name in ("index.html", "zh-cn/index.html", "js/app.js", "js/content.js", "js/articles.js"):
+    for name in ("index.html", "zh-cn/index.html", "js/app.js", "js/content.js", "js/articles.js",
+                 "zh-cn/app.js", "zh-cn/content.js", "zh-cn/articles.js"):
         text = read(name)
         for m in EMOJI.finditer(text):
             fail(name, text, m.start(), f"出現 emoji（U+{ord(m.group()):04X}），DESIGN.md 禁用")
@@ -146,7 +159,8 @@ def check_secrets():
     content = read("js/content.js")
     for m in re.finditer(r"defaultKey\s*:|atob\(|Buffer\.from\(", content):
         fail("js/content.js", content, m.start(), "疑似內嵌金鑰（defaultKey / atob），本站不使用任何 API 金鑰")
-    for name in ("index.html", "zh-cn/index.html", "js/app.js", "js/content.js", "js/articles.js"):
+    for name in ("index.html", "zh-cn/index.html", "js/app.js", "js/content.js", "js/articles.js",
+                 "zh-cn/app.js", "zh-cn/content.js", "zh-cn/articles.js"):
         text = read(name)
         for m in re.finditer(r"AIza[0-9A-Za-z_\-]{30,}|AQ\.[0-9A-Za-z_\-]{30,}", text):
             fail(name, text, m.start(), "疑似 Google API 金鑰明文")
@@ -155,9 +169,39 @@ def check_secrets():
 
 
 def check_no_alert():
-    app = read("js/app.js")
-    for m in re.finditer(r"(?<![.\w])alert\(", app):
-        fail("js/app.js", app, m.start(), "禁止侵入式 alert()，請改用內嵌狀態微反饋")
+    for name in ("js/app.js", "zh-cn/app.js"):
+        app = read(name)
+        for m in re.finditer(r"(?<![.\w])alert\(", app):
+            fail(name, app, m.start(), "禁止侵入式 alert()，請改用內嵌狀態微反饋")
+
+
+# OpenCC 會把簡體的「么」（什么、怎么）當成繁體再轉成「幺」，這不是繁體殘留
+OPENCC_AMBIGUOUS = {("么", "幺")}
+
+
+def check_zhcn_simplified():
+    """簡體頁面不得殘留繁體字：把簡體 JS 再丟進 OpenCC，輸出應與輸入完全相同。"""
+    try:
+        from opencc import OpenCC
+    except ImportError:
+        warnings.append("未安裝 opencc，略過簡體版殘留繁體字檢查（pip install opencc-python-reimplemented）")
+        return
+    cc = OpenCC("tw2sp")
+    for name in ("zh-cn/content.js", "zh-cn/articles.js", "zh-cn/app.js"):
+        text = read(name)
+        if not text:
+            continue
+        converted = cc.convert(text)
+        if converted == text:
+            continue
+        shown = 0
+        for i, (a, b) in enumerate(zip(text, converted)):
+            if a != b and (a, b) not in OPENCC_AMBIGUOUS:
+                fail(name, text, i, f"簡體版殘留繁體字「{a}」(應為「{b}」)，請重新執行 tools/build_zhcn.py")
+                shown += 1
+                if shown >= 5:
+                    break
+        # 長度不同或僅有已知例外的差異，不視為違規
 
 
 def main():
@@ -168,6 +212,7 @@ def main():
     check_html_integrity()
     check_secrets()
     check_no_alert()
+    check_zhcn_simplified()
 
     for w in warnings:
         print(f"警告  {w}")

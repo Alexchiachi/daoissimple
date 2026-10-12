@@ -30,7 +30,6 @@ const DaoSanctuaryData = {
       facebookUrl: "https://www.facebook.com/dream2walker",
       wechatOfficial: "簡家旗-出租大書",
       wechatId: "chiachilove",
-      bookingCalendarUrl: "https://alexchiachi.github.io/happy/inner-flow/",
       githubRepo: "https://github.com/Alexchiachi/daoissimple"
     },
     api: {

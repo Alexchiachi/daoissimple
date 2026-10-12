@@ -57,22 +57,10 @@ function updateLangButtonText(btn) {
   }
 }
 
-// 簡易字串在地化替換 (簡體模式)
+// 介面字串的繁簡轉換已在建置時完成 (tools/build_zhcn.py 會把本檔與資料檔整份轉成 zh-cn/*.js)，
+// 這裡保留 t() 只是讓既有呼叫處不必改動；執行期不再做任何字串替換。
 function t(str) {
-  if (currentLang === 'zh-tw') return str;
-  const dict = {
-    '台灣': '台湾', '雲南': '云南', '專案': '项目', '網路': '网络', '影片': '视频',
-    '資訊': '信息', '軟體': '软件', '硬體': '硬件', '連結': '连接', '體驗': '体验',
-    '創業者': '创业者', '幸福餐桌': '幸福餐桌', '生命回憶錄': '生命回忆录',
-    '大傾聽': '大倾听', '深山的幸福道場': '深山的幸福道场', '大道至簡': '大道至简',
-    '預約': '预约', '諮詢': '咨询', '線上': '线上', '首映會': '首映会',
-    '節氣': '节气', '香氣': '香气', '為道日損': '为道日损', '耗散結構': '耗散结构'
-  };
-  let res = str;
-  for (const [k, v] of Object.entries(dict)) {
-    res = res.replaceAll(k, v);
-  }
-  return res;
+  return str;
 }
 
 // ==========================================
@@ -496,7 +484,8 @@ async function submitBooking(payload) {
   try {
     const res = await postJson(url, payload, 15000);
     const data = await res.json().catch(() => ({}));
-    if (res.ok && data.ok && data.code) return { ok: true, code: data.code };
+    // mailed:false 代表資料已存進後台，但通知信沒寄出；舊版 Worker 不回傳此欄位則視為已寄出
+    if (res.ok && data.ok && data.code) return { ok: true, code: data.code, mailed: data.mailed !== false };
   } catch (err) {
     console.warn('表單送達失敗，改走手動傳送備援：', err);
   }
@@ -541,17 +530,18 @@ function initMirrorForm() {
     });
 
     const code = result.ok ? result.code : localBookingCode();
-    showMirrorResult(code, result.ok, { q1, q2, q3 });
+    showMirrorResult(code, result.ok, { q1, q2, q3 }, result.mailed);
     if (btn) { btn.disabled = false; btn.textContent = btnText; }
   });
 }
 
-function showMirrorResult(code, delivered, answers) {
+function showMirrorResult(code, delivered, answers, mailed) {
   const contact = DaoSanctuaryData.config.contact;
   const intentLine = mirrorIntent ? `（意向：${mirrorIntent}）` : '';
 
-  // 已送達只需回傳通關碼；未送達則把完整回答放進訊息，客人傳出去主理人才收得到
-  const message = delivered
+  // 已存檔且通知信已寄出，只需回傳通關碼；否則把完整回答放進訊息，客人傳出去主理人才一定收得到
+  const notified = delivered && mailed !== false;
+  const message = notified
     ? `通關碼 ${code}${intentLine}`
     : `通關碼 ${code}${intentLine}\n一、${answers.q1}\n二、${answers.q2}\n三、${answers.q3}`;
   mirrorManualText = message;
@@ -561,12 +551,16 @@ function showMirrorResult(code, delivered, answers) {
   const statusEl = document.getElementById('mirror-delivery-status');
   const manualEl = document.getElementById('mirror-manual-actions');
   if (statusEl) {
-    statusEl.textContent = delivered
-      ? t('✓ 您的回答已送達簡家旗工作室 請憑通關碼從下方任一管道回傳 我們會對照確認')
-      : t('您的回答尚未自動送達。請先複製回答 再連同通關碼傳給下方任一管道 這樣我們才收得到');
-    statusEl.style.color = delivered ? 'var(--tea)' : 'var(--seal)';
+    if (notified) {
+      statusEl.textContent = t('✓ 您的回答已送達簡家旗工作室 請憑通關碼從下方任一管道回傳 我們會對照確認');
+    } else if (delivered) {
+      statusEl.textContent = t('您的回答已記錄在工作室後台 但通知信寄送遇到問題。請複製回答 連同通關碼傳給下方任一管道 我們才能即時看到');
+    } else {
+      statusEl.textContent = t('您的回答尚未自動送達。請先複製回答 再連同通關碼傳給下方任一管道 這樣我們才收得到');
+    }
+    statusEl.style.color = notified ? 'var(--tea)' : 'var(--seal)';
   }
-  if (manualEl) manualEl.style.display = delivered ? 'none' : 'block';
+  if (manualEl) manualEl.style.display = notified ? 'none' : 'block';
 
   const lineBtn = document.getElementById('mirror-line-btn');
   if (lineBtn) lineBtn.href = `https://line.me/R/oaMessage/${contact.lineId}/?${encodeURIComponent(message)}`;
@@ -797,6 +791,7 @@ window.handlePetalReservation = async function(e, petalId) {
         <div style="color: var(--tea); margin-bottom: 6px;">${t('✓ 已登記 感謝結緣')}</div>
         <div style="font-family: var(--font-display); font-size: 1.4rem; letter-spacing: 0.12em; margin-bottom: 8px;">${result.code}</div>
         <div style="color: var(--ink-soft);">${t('太太與工作室將於節氣出產前夕與您聯繫 請留存此通關碼')}</div>
+        ${result.mailed === false ? `<div style="color: var(--seal); margin-top: 8px;">${t('通知信寄送遇到問題 資料已記錄在後台 建議再以 LINE 傳送通關碼')} <a href="https://line.me/R/oaMessage/${DaoSanctuaryData.config.contact.lineId}/?${encodeURIComponent(`通關碼 ${result.code}（${petal.title}）`)}" target="_blank" rel="noopener" style="color: var(--tea); text-decoration: underline;">${t('以 LINE 傳送')} →</a></div>` : ''}
         <button type="button" class="contact-sub-btn" style="margin-top: 12px;" onclick="copyText('${result.code}', this)">${t('複製通關碼')}</button>
       </div>`;
     return;

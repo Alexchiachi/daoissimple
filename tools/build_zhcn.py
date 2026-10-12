@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 """
 深山的幸福道場 · 繁簡在地化建置腳本 (tools/build_zhcn.py)
-自動從繁體中文版產生大陸簡體中文版 (zh-cn/index.html)，
-並轉換大陸在地習慣用語（OpenCC tw2sp：網路→网络、影片→视频、專案→项目）。
+自動從繁體中文版產生大陸簡體中文版，並轉換大陸在地習慣用語
+（OpenCC tw2sp：網路→网络、影片→视频、專案→项目）。
+
+產出（皆為編譯結果，切勿手改；改繁體正本後重新執行本腳本）：
+  zh-cn/index.html   由根目錄 index.html 轉換
+  zh-cn/content.js   由 js/content.js 轉換（價格卡片、花瓣、花心、道童問答）
+  zh-cn/articles.js  由 js/articles.js 轉換（長文專欄）
+  zh-cn/app.js       由 js/app.js 轉換（介面文字、本地智庫的關鍵字與回答）
+
+JS 一併轉換的好處：簡體訪客在道童輸入簡體關鍵字（如「面包」「父母」）也能比對到，
+介面訊息、長文與按鈕不再混有繁體字。貨幣由 app.js 依頁面語系選用 cnPrice（¥），
+簡體版資料檔內的 twPrice 欄位會被移除，避免 NT$ 殘留在簡體頁面。
 """
 
 import os
@@ -38,9 +48,10 @@ def main():
 
     # 調整資源相對路徑 (退回上一層)
     converted = converted.replace('href="css/style.css"', 'href="../css/style.css"')
-    converted = converted.replace('src="js/articles.js"', 'src="../js/articles.js"')
-    converted = converted.replace('src="js/content.js"', 'src="../js/content.js"')
-    converted = converted.replace('src="js/app.js"', 'src="../js/app.js"')
+    # JS 由本腳本轉成簡體後放在 zh-cn/，與頁面同層引用
+    converted = converted.replace('src="js/articles.js"', 'src="articles.js"')
+    converted = converted.replace('src="js/content.js"', 'src="content.js"')
+    converted = converted.replace('src="js/app.js"', 'src="app.js"')
     
     # 習慣用語潤飾 (「拷贝」->「复制」，「信道」->「通道」)
     converted = converted.replace('拷贝', '复制')
@@ -56,7 +67,18 @@ def main():
 
     out_file = OUT / "index.html"
     out_file.write_text(converted, encoding="utf-8")
-    print(f"🎉 簡體中文版建置完成：{out_file}")
+
+    # 轉換 JS：content.js 另移除 twPrice 欄位（簡體頁只使用 cnPrice）
+    for name in ("content.js", "articles.js", "app.js"):
+        src = (ROOT / "js" / name).read_text(encoding="utf-8")
+        out = cc.convert(src)
+        # 與 HTML 相同的習慣用語潤飾
+        out = out.replace('拷贝', '复制').replace('信道', '通道')
+        if name == "content.js":
+            out = re.sub(r'^[ \t]*twPrice(?:Detail)?:.*\n', '', out, flags=re.M)
+        (OUT / name).write_text(out, encoding="utf-8")
+
+    print(f"🎉 簡體中文版建置完成：{out_file} 與 zh-cn/{{content,articles,app}}.js")
 
 if __name__ == "__main__":
     main()
