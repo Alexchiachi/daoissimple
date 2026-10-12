@@ -242,6 +242,9 @@ def check_seo():
         errors.append(f"index.html：首頁 canonical 應以 / 結尾：{site}")
         return
 
+    m_tok = re.search(r"data-cf-beacon='\{\"token\": \"([^\"]*)\"", home)
+    home_token = m_tok.group(1) if m_tok else ""
+
     def ld_ok(name, text):
         blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', text, re.S)
         if not blocks:
@@ -265,6 +268,12 @@ def check_seo():
         if not re.search(r'<meta name="description" content="[^"]{10,}', text):
             errors.append(f"{name}：缺少 meta description")
         ld_ok(name, text)
+        # 統計碼：每頁恰一段，且 token 與首頁一致（首頁沒有 = 統計已關閉，全站都不應有）
+        beacons = re.findall(r"cloudflareinsights\.com/beacon\.min\.js[^>]*data-cf-beacon='\{\"token\": \"([^\"]*)\"", text)
+        if len(beacons) != (1 if home_token else 0):
+            errors.append(f"{name}：Cloudflare Web Analytics 統計碼應有 {1 if home_token else 0} 段，實際 {len(beacons)} 段")
+        elif beacons and beacons[0] != home_token:
+            errors.append(f"{name}：統計 token 與首頁不一致")
 
     # 首頁（繁、簡）
     tw_alt = {"zh-Hant": site, "zh-Hans": site + "zh-cn/", "x-default": site}

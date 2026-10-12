@@ -9,9 +9,10 @@
   sitemap.xml                       首頁與全部長文，含繁簡 hreflang 互指
   feed.xml、zh-cn/feed.xml          RSS 2.0 訂閱源
   robots.txt                        爬蟲規則與 sitemap 位置
-並就地更新 index.html、zh-cn/index.html 中兩段標記區塊：
+並就地更新 index.html、zh-cn/index.html 中三段標記區塊：
   <!-- SEO:HEAD:START --> … <!-- SEO:HEAD:END -->        canonical、hreflang、Open Graph、Twitter、JSON-LD
   <!-- SEO:ARTICLES:START --> … <!-- SEO:ARTICLES:END -->  無 JS 時的長文索引 (noscript)
+  <!-- SEO:ANALYTICS:START --> … <!-- SEO:ANALYTICS:END -->  Cloudflare Web Analytics 統計碼（長文頁也會帶上）
 
 網址只在 SITE_URL 一處設定。日後改用自有網域（如 daoissimple.com），執行
   DAO_SITE_URL=https://daoissimple.com/ python3 tools/build_zhcn.py
@@ -36,6 +37,11 @@ SITE_NAME = "大道至簡 · 深山的幸福道場"
 OG_IMAGE_PATH = "images/og-cover.png"
 OG_IMAGE_ALT = "大道至簡 · 深山的幸福道場"
 AUTHOR_NAME = "簡家旗"
+# Cloudflare Web Analytics：與 happy 品牌站共用同一個 hostname（alexchiachi.github.io）與 token，
+# 報表以網址路徑 /daoissimple/ 篩選即可單看本站。token 是公開值，本來就會出現在頁面原始碼。
+# 日後改用自有網域時，需在 Cloudflare 後台為新網域新增網站，並把新 token 填在這裡（或用環境變數）。
+# 設為空字串可關閉統計。
+ANALYTICS_TOKEN = os.environ.get("DAO_ANALYTICS_TOKEN", "bbab4131ad864cc59ac6bdd0c4707adb")
 SAME_AS = [
     "https://www.facebook.com/dream2walker",
     "https://github.com/Alexchiachi/daoissimple",
@@ -142,6 +148,16 @@ def conv(lang, text):
     return _cc().convert(text) if lang == "zh-cn" else text
 
 
+def analytics_snippet(lang="zh-tw"):
+    if not ANALYTICS_TOKEN:
+        return "<!-- " + conv(lang, "統計已關閉") + " -->"
+    return (
+        "<!-- " + conv(lang, "Cloudflare Web Analytics：不用 cookie、不追蹤個人，只統計瀏覽量；與品牌站共用 hostname，報表以路徑 /daoissimple/ 篩選") + " -->"
+        "<script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' "
+        "data-cf-beacon='{\"token\": \"" + ANALYTICS_TOKEN + "\"}'></script>"
+    )
+
+
 # ------------------------------------------------------------------ 首頁區塊
 def home_head_block(lang):
     L = LANGS[lang]
@@ -205,6 +221,7 @@ def update_home(path, lang, articles):
     text = path.read_text(encoding="utf-8")
     text = replace_block(text, "HEAD", home_head_block(lang))
     text = replace_block(text, "ARTICLES", home_articles_block(lang, articles))
+    text = replace_block(text, "ANALYTICS", analytics_snippet(lang))
     path.write_text(text, encoding="utf-8")
 
 
@@ -347,6 +364,7 @@ def render_article(a, lang, articles):
       </div>
     </div>
   </footer>
+  {analytics_snippet(lang)}
 </body>
 </html>
 """
