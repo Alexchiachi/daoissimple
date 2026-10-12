@@ -526,10 +526,42 @@ h1, h2, h3, h4 {
   white-space: nowrap;
 }
 
-/* --- 俗人對話錄 --- */
+/* --- 深度長文專欄 (Wisdom Stream) 切換標籤與沉浸讀書卷 --- */
+.wisdom-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: var(--s-4);
+}
+
+.wisdom-tab-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 8px 18px;
+  font-family: var(--font-han);
+  font-size: 0.88rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all var(--dur-ui);
+}
+
+.wisdom-tab-btn:hover {
+  border-color: var(--tea);
+  color: var(--tea);
+}
+
+.wisdom-tab-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
 .wisdom-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--s-3);
 }
 
@@ -538,6 +570,9 @@ h1, h2, h3, h4 {
   background: var(--paper);
   padding: var(--s-3);
   border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   transition: all var(--dur-ui) ease-out;
 }
 
@@ -546,33 +581,232 @@ h1, h2, h3, h4 {
   background: var(--paper-deep);
 }
 
-.wisdom-tag {
-  font-family: var(--font-display);
-  font-size: 0.78rem;
-  color: var(--tea);
-  letter-spacing: 0.15em;
+.wisdom-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: var(--s-1);
 }
 
+.wisdom-tag {
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  color: var(--tea);
+  letter-spacing: 0.12em;
+}
+
+.wisdom-time-pill {
+  font-size: 0.72rem;
+  color: var(--mist);
+  letter-spacing: 0.05em;
+}
+
 .wisdom-card h3 {
-  font-size: 1.15rem;
+  font-size: 1.18rem;
   margin-bottom: var(--s-2);
-  line-height: 1.4;
+  line-height: 1.45;
+  font-weight: 300;
+  color: var(--ink);
 }
 
 .wisdom-content {
   font-size: 0.92rem;
   color: var(--ink-soft);
-  line-height: 1.8;
-  margin-bottom: var(--s-2);
+  line-height: 1.85;
+  margin-bottom: var(--s-3);
+  flex-grow: 1;
+}
+
+.wisdom-footer {
+  border-top: 1px solid var(--line);
+  padding-top: var(--s-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 .wisdom-quote {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--mist);
   font-style: italic;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.wisdom-read-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 0.82rem;
+  padding: 6px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.1em;
+  transition: all var(--dur-ui);
+}
+
+.wisdom-read-btn:hover {
+  border-color: var(--tea);
+  color: var(--tea);
+  background: var(--paper);
+}
+
+/* --- 產地讀書卷 · 全屏沉浸閱讀抽屜 (Zen Reader View) --- */
+.zen-reader-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 37, 32, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-chrome) var(--ease);
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.zen-reader-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.zen-reader-panel {
+  width: 100%;
+  max-width: 820px;
+  height: 100%;
+  background: var(--paper);
+  padding: var(--s-5) var(--s-4);
+  overflow-y: auto;
+  transform: translateY(20px);
+  transition: transform var(--dur-chrome) var(--ease);
+  position: relative;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
+}
+
+.zen-reader-overlay.open .zen-reader-panel {
+  transform: translateY(0);
+}
+
+.zen-reader-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-size: 18px;
+  z-index: 10;
+  transition: all var(--dur-ui);
+}
+
+.zen-reader-close:hover {
+  border-color: var(--tea);
+  color: var(--tea);
+}
+
+.zen-article-container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding-bottom: var(--s-5);
+}
+
+.zen-article-meta {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--tea);
+  letter-spacing: 0.25em;
+  margin-bottom: var(--s-2);
+  text-transform: uppercase;
+}
+
+.zen-article-title {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--s-2);
+  color: var(--ink);
+}
+
+.zen-article-subtitle {
+  font-size: 0.95rem;
+  color: var(--mist);
+  margin-bottom: var(--s-3);
+  letter-spacing: 0.05em;
+}
+
+.zen-golden-box {
+  border-left: 2px solid var(--tea);
+  background: var(--paper-deep);
+  padding: var(--s-2) var(--s-3);
+  margin: var(--s-3) 0 var(--s-4);
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--ink);
+  line-height: 1.8;
+}
+
+.zen-article-body p {
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+  line-height: 2.1;
+  margin-bottom: var(--s-3);
+  text-align: justify;
+  letter-spacing: 0.02em;
+}
+
+.zen-reader-footer {
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
   border-top: 1px solid var(--line);
-  padding-top: var(--s-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  align-items: center;
+  text-align: center;
+}
+
+/* --- 道童活體配置齒輪按鈕與彈窗 --- */
+.daoboy-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.daoboy-gear-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--mist);
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all var(--dur-ui);
+}
+
+.daoboy-gear-btn:hover {
+  border-color: var(--tea);
+  color: var(--tea);
+}
+
+.daoboy-badge-live {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 0.68rem;
+  border: 1px solid var(--tea);
+  color: var(--tea);
+  letter-spacing: 0.1em;
+  margin-left: 6px;
 }
 
 /* --- 守門道童與問道之鏡 (書卷風格) --- */

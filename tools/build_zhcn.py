@@ -38,6 +38,7 @@ def main():
 
     # 調整資源相對路徑 (退回上一層)
     converted = converted.replace('href="css/style.css"', 'href="../css/style.css"')
+    converted = converted.replace('src="js/articles.js"', 'src="../js/articles.js"')
     converted = converted.replace('src="js/content.js"', 'src="../js/content.js"')
     converted = converted.replace('src="js/app.js"', 'src="../js/app.js"')
     

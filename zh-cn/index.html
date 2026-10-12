@@ -36,7 +36,7 @@
       <nav>
         <ul class="nav-links">
           <li><a href="#hero" class="nav-link">山门初心</a></li>
-          <li><a href="#wisdom" class="nav-link">俗人对话</a></li>
+          <li><a href="#wisdom" class="nav-link">长文专栏</a></li>
           <li><a href="#petals" class="nav-link">花瓣香气</a></li>
           <li><a href="#core" class="nav-link">花心四柱</a></li>
           <li><a href="#daoboy" class="nav-link">守门道童</a></li>
@@ -83,17 +83,22 @@
       </div>
     </section>
 
-    <!-- 模块二：俗人对话录 (Wisdom Stream) -->
+    <!-- 模块二：深山长文专栏 (Wisdom Stream) -->
     <section id="wisdom" class="sanctuary-section">
       <div class="sanctuary-container">
         <div class="section-header reveal">
-          <div class="eyebrow">Wisdom Stream</div>
-          <h2 class="h-section">俗人对话录</h2>
-          <p class="section-desc">生活到哪里<i class="gap"> </i>原矿就采到哪里<br>不做流量行销八股<i class="gap"> </i>只有做菜喝茶行走中的真实生命反思</p>
+          <div class="eyebrow">Wisdom Stream · 长文专栏</div>
+          <h2 class="h-section">深山长文专栏</h2>
+          <p class="section-desc">俗人对话<i class="gap"> </i>幸福对话<i class="gap"> </i>一人公司<i class="gap"> </i>禅宗生活<br>不做浮躁短视频碎片<i class="gap"> </i>只保留在产地细细研磨的深度生命篇章</p>
+        </div>
+
+        <!-- 四大清泉切换标签 -->
+        <div id="wisdom-tabs" class="wisdom-tabs reveal">
+          <!-- 由 app.js 动态渲染 -->
         </div>
 
         <div id="wisdom-container" class="wisdom-grid">
-          <!-- 由 content.js 动态渲染 -->
+          <!-- 由 articles.js 动态渲染 -->
         </div>
       </div>
     </section>
@@ -138,11 +143,16 @@
         </div>
 
         <div class="daoboy-box reveal">
-          <div class="daoboy-header">
-            <div class="daoboy-avatar-square">童</div>
-            <div class="daoboy-meta">
-              <h3>深山道童</h3>
-              <p>大道至简 · 私有矢量神经网络即时检索中</p>
+          <div class="daoboy-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="display: flex; gap: 16px; align-items: center;">
+              <div class="daoboy-avatar-square">童</div>
+              <div class="daoboy-meta">
+                <h3 style="display: flex; align-items: center; gap: 8px;">深山道童 <span id="daoboy-live-indicator" class="daoboy-badge-live">本地心智</span></h3>
+                <p id="daoboy-engine-label">大道至简 · 8篇长文与老庄矢量智库即时检索中</p>
+              </div>
+            </div>
+            <div class="daoboy-header-actions">
+              <button id="daoboy-gear-btn" class="daoboy-gear-btn" onclick="openDaoBoyModal()" title="活体心智配置">⚙️ 活体配置</button>
             </div>
           </div>
 
@@ -285,7 +295,7 @@
           <ul>
             <li><a href="#petals">云南的香气 安宁清晨</a></li>
             <li><a href="#petals">南投深山手采茶席</a></li>
-            <li><a href="#wisdom">俗人对话录</a></li>
+            <li><a href="#wisdom">深山长文专栏</a></li>
             <li><a href="https://github.com/Alexchiachi/daoissimple" target="_blank">GitHub 开源库</a></li>
           </ul>
         </div>
@@ -297,6 +307,49 @@
     </div>
   </footer>
 
+  <!-- 产地读书卷 · 全屏沉浸阅读抽屉 (Zen Reader View) -->
+  <div id="zen-reader-overlay" class="zen-reader-overlay" onclick="closeZenReader(event)">
+    <div class="zen-reader-panel" onclick="event.stopPropagation()">
+      <button class="zen-reader-close" onclick="closeZenReader()" title="关闭阅读卷 (Esc)">✕</button>
+      <div id="zen-reader-content" class="zen-article-container">
+        <!-- 由 articles.js 动态渲染 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 道童活体心智配置弹窗 (Gemini API Settings) -->
+  <div id="daoboy-modal-overlay" class="drawer-overlay" onclick="closeDaoBoyModal(event)">
+    <div class="drawer-panel" onclick="event.stopPropagation()" style="max-width: 480px;">
+      <button class="drawer-close-btn" onclick="closeDaoBoyModal()">✕</button>
+      <div style="margin-top: var(--s-3);">
+        <span class="eyebrow">Gemini 2.0 Flash</span>
+        <h3 style="margin-top: 6px; font-weight: 300;">深山道童 · 活体心智配置</h3>
+        <p style="font-size: 0.88rem; color: var(--ink-soft); line-height: 1.8; margin-top: 10px;">
+          道童默认已加载 8 篇深度长文与老庄金融知识库进行智能检索。<br>
+          若您想体验即时大模型推演，可在此填入您的 Google AI Studio Gemini API Key 或专属代理端点。
+        </p>
+
+        <div style="margin-top: var(--s-3);">
+          <label style="display: block; font-size: 0.85rem; color: var(--mist); margin-bottom: 6px;">Google Gemini API Key（保存在本地浏览器）</label>
+          <input type="password" id="gemini-key-input" class="daoboy-input" placeholder="AIzaSy..." style="width: 100%; margin-bottom: 8px;">
+          <small style="color: var(--mist); font-size: 0.75rem; display: block;">前往 <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--tea);">Google AI Studio</a> 免费获取 Key（每日 1,500 次免费）。</small>
+        </div>
+
+        <div style="margin-top: var(--s-3);">
+          <label style="display: block; font-size: 0.85rem; color: var(--mist); margin-bottom: 6px;">或自定义代理端点（选填，如 Cloudflare Worker）</label>
+          <input type="text" id="gemini-endpoint-input" class="daoboy-input" placeholder="https://your-daoboy-worker.workers.dev" style="width: 100%;">
+        </div>
+
+        <div style="margin-top: var(--s-4); display: flex; gap: 10px;">
+          <button class="btn-cta" style="flex: 1; padding: 10px;" onclick="saveDaoBoySettings()">保存并打开活体 →</button>
+          <button class="btn-cta quiet" style="padding: 10px;" onclick="clearDaoBoySettings()">清空配置</button>
+        </div>
+        <div id="daoboy-modal-status" style="margin-top: 12px; font-size: 0.82rem; color: var(--tea); text-align: center;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/articles.js"></script>
   <script src="../js/content.js"></script>
   <script src="../js/app.js"></script>
 </body>

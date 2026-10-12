@@ -9,9 +9,12 @@
 document.addEventListener('DOMContentLoaded', () => {
   initLanguage();
   renderDynamicContent();
+  initWisdomStream();
   initDaoBoyChat();
+  initDaoBoyLiveSettings();
   initMirrorForm();
   initScrollAnimations();
+  initGlobalKeyboardAndHash();
 });
 
 // ==========================================
@@ -158,23 +161,254 @@ function renderDynamicContent() {
     }).join('');
   }
 
-  // 4. 渲染俗人對話錄
-  const wisdomContainer = document.getElementById('wisdom-container');
-  if (wisdomContainer) {
-    wisdomContainer.innerHTML = data.wisdomStream.map((item, idx) => `
-      <div class="wisdom-card reveal">
-        <div class="wisdom-tag">${t(item.tag)} · ${t(item.date)}</div>
-        <h3>${t(item.title)}</h3>
-        <p class="wisdom-content">${t(item.content)}</p>
-        <div class="wisdom-quote">${t(item.quote)}</div>
-      </div>
-    `).join('');
-  }
+  // 4. 渲染深山長文專欄 (Wisdom Stream)
+  initWisdomStream();
 }
 
 // ==========================================
-// 3. 守門道童問答
+// 3. 深山長文專欄與沉浸讀書卷 (Wisdom Stream & Zen Reader)
 // ==========================================
+let currentWisdomCategory = 'all';
+
+function initWisdomStream() {
+  const tabsContainer = document.getElementById('wisdom-tabs');
+  if (tabsContainer) {
+    const categories = [
+      { id: 'all', name: '全部篇章' },
+      { id: 'su', name: '俗人對話錄' },
+      { id: 'xing', name: '幸福對話錄' },
+      { id: 'one', name: '一人公司感悟' },
+      { id: 'zen', name: '禪宗生活感悟' }
+    ];
+
+    tabsContainer.innerHTML = categories.map(cat => `
+      <button class="wisdom-tab-btn ${cat.id === currentWisdomCategory ? 'active' : ''}" 
+              onclick="filterWisdomCategory('${cat.id}')">
+        ${t(cat.name)}
+      </button>
+    `).join('');
+  }
+
+  renderWisdomArticles(currentWisdomCategory);
+}
+
+window.filterWisdomCategory = function(catId) {
+  currentWisdomCategory = catId;
+  const tabs = document.querySelectorAll('.wisdom-tab-btn');
+  tabs.forEach(tab => {
+    tab.classList.toggle('active', tab.getAttribute('onclick').includes(`'${catId}'`));
+  });
+  renderWisdomArticles(catId);
+};
+
+function renderWisdomArticles(catId) {
+  const container = document.getElementById('wisdom-container');
+  if (!container) return;
+
+  const allArticles = window.DaoArticlesData || [];
+  const filtered = catId === 'all' 
+    ? allArticles 
+    : allArticles.filter(a => a.category === catId);
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--mist); padding: 40px 0;">${t('該分類長文正在深山整理中...')}</p>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(item => `
+    <div class="wisdom-card reveal">
+      <div>
+        <div class="wisdom-meta-row">
+          <span class="wisdom-tag">${t(item.categoryName)} · ${t(item.season)}</span>
+          <span class="wisdom-time-pill">${t(item.readTime)}</span>
+        </div>
+        <h3>${t(item.title)}</h3>
+        <p class="wisdom-content">${t(item.excerpt)}</p>
+      </div>
+      <div class="wisdom-footer">
+        <div class="wisdom-quote">${t(item.quote)}</div>
+        <button class="wisdom-read-btn" onclick="openZenReader('${item.id}')">
+          ${t('入席靜讀')} →
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 沉浸讀書卷抽屜 (Zen Reader View)
+window.openZenReader = function(articleId) {
+  const allArticles = window.DaoArticlesData || [];
+  const article = allArticles.find(a => a.id === articleId);
+  const overlay = document.getElementById('zen-reader-overlay');
+  const contentBox = document.getElementById('zen-reader-content');
+
+  if (!article || !overlay || !contentBox) return;
+
+  if (history.pushState) {
+    history.pushState(null, null, `#read=${articleId}`);
+  }
+
+  contentBox.innerHTML = `
+    <div class="zen-article-meta">
+      ${t(article.categoryName)} · ${t(article.season)} · ${t(article.location)}
+    </div>
+    <h1 class="zen-article-title">${t(article.title)}</h1>
+    <div class="zen-article-subtitle">
+      <span>${t('主理人：簡家旗')}</span><i class="gap"> </i>
+      <span>${t('閱讀時長：')}${t(article.readTime)}</span>
+    </div>
+    <div class="zen-golden-box">
+      「${t(article.quote)}」
+    </div>
+    <div class="zen-article-body">
+      ${article.paragraphs.map(p => `<p>${t(p)}</p>`).join('')}
+    </div>
+    <div class="seal" style="margin: var(--s-4) auto var(--s-2);">${t('大道至簡')}</div>
+    <div class="zen-reader-footer">
+      <p style="color: var(--mist); font-size: 0.9rem; line-height: 1.8;">
+        ${t('字句讀完，回歸當下。若在字裡行間看見了自己的倒影，歡迎入席對坐：')}
+      </p>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+        <button class="btn-cta" onclick="askDaoBoyAboutArticle('${article.title}')">
+          ${t('與道童聊聊這篇文章')} →
+        </button>
+        <button class="btn-cta quiet" onclick="closeZenReader(); scrollToMirror('${article.title}')">
+          ${t('向仙人問道預約')} →
+        </button>
+      </div>
+    </div>
+  `;
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeZenReader = function(e) {
+  if (e && e.target && e.target !== document.getElementById('zen-reader-overlay') && !e.target.classList.contains('zen-reader-close')) {
+    return;
+  }
+  const overlay = document.getElementById('zen-reader-overlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  if (window.location.hash.startsWith('#read=')) {
+    history.pushState(null, null, window.location.pathname + window.location.search);
+  }
+};
+
+window.askDaoBoyAboutArticle = function(title) {
+  closeZenReader();
+  const daoboySec = document.getElementById('daoboy');
+  if (daoboySec) {
+    daoboySec.scrollIntoView({ behavior: 'smooth' });
+  }
+  const input = document.getElementById('daoboy-input');
+  if (input) {
+    input.value = `讀了《${title}》，想聽聽道童怎麼看？`;
+    setTimeout(() => {
+      handleUserQuery(input.value);
+      input.value = '';
+    }, 500);
+  }
+};
+
+// ==========================================
+// 4. 守門道童問答 (本地智庫 + Gemini 2.0 活體對談)
+// ==========================================
+function initDaoBoyLiveSettings() {
+  updateDaoBoyStatus();
+}
+
+function updateDaoBoyStatus() {
+  const key = localStorage.getItem('dao_gemini_api_key');
+  const endpoint = localStorage.getItem('dao_gemini_endpoint');
+  const indicator = document.getElementById('daoboy-live-indicator');
+  const engineLabel = document.getElementById('daoboy-engine-label');
+
+  if (indicator && engineLabel) {
+    if (key || endpoint) {
+      indicator.textContent = t('活體 · Gemini 2.0');
+      indicator.style.borderColor = 'var(--tea)';
+      indicator.style.color = 'var(--tea)';
+      engineLabel.textContent = t('Google Gemini 2.0 Flash 即時深山心智對談中');
+    } else {
+      indicator.textContent = t('本地心智');
+      indicator.style.borderColor = 'var(--mist)';
+      indicator.style.color = 'var(--mist)';
+      engineLabel.textContent = t('大道至簡 · 8篇長文與老莊向量智庫即時檢索中');
+    }
+  }
+}
+
+window.openDaoBoyModal = function() {
+  const modal = document.getElementById('daoboy-modal-overlay');
+  const keyInput = document.getElementById('gemini-key-input');
+  const endpointInput = document.getElementById('gemini-endpoint-input');
+  if (keyInput) keyInput.value = localStorage.getItem('dao_gemini_api_key') || '';
+  if (endpointInput) endpointInput.value = localStorage.getItem('dao_gemini_endpoint') || '';
+  if (modal) {
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+};
+
+window.closeDaoBoyModal = function(e) {
+  if (e && e.target && e.target !== document.getElementById('daoboy-modal-overlay') && !e.target.classList.contains('drawer-close-btn')) {
+    return;
+  }
+  const modal = document.getElementById('daoboy-modal-overlay');
+  if (modal) {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+};
+
+window.saveDaoBoySettings = function() {
+  const key = document.getElementById('gemini-key-input').value.trim();
+  const endpoint = document.getElementById('gemini-endpoint-input').value.trim();
+  const status = document.getElementById('daoboy-modal-status');
+
+  if (key) {
+    localStorage.setItem('dao_gemini_api_key', key);
+  } else {
+    localStorage.removeItem('dao_gemini_api_key');
+  }
+
+  if (endpoint) {
+    localStorage.setItem('dao_gemini_endpoint', endpoint);
+  } else {
+    localStorage.removeItem('dao_gemini_endpoint');
+  }
+
+  updateDaoBoyStatus();
+  if (status) {
+    status.textContent = t('✓ 活體心智配置已生效');
+    setTimeout(() => {
+      closeDaoBoyModal();
+      status.textContent = '';
+    }, 1000);
+  }
+};
+
+window.clearDaoBoySettings = function() {
+  localStorage.removeItem('dao_gemini_api_key');
+  localStorage.removeItem('dao_gemini_endpoint');
+  const keyInput = document.getElementById('gemini-key-input');
+  const endpointInput = document.getElementById('gemini-endpoint-input');
+  const status = document.getElementById('daoboy-modal-status');
+  if (keyInput) keyInput.value = '';
+  if (endpointInput) endpointInput.value = '';
+  updateDaoBoyStatus();
+  if (status) {
+    status.textContent = t('已重置為本地深山長文智庫');
+    setTimeout(() => {
+      closeDaoBoyModal();
+      status.textContent = '';
+    }, 1000);
+  }
+};
+
 function initDaoBoyChat() {
   const chatWindow = document.getElementById('daoboy-chat-window');
   const input = document.getElementById('daoboy-input');
@@ -214,7 +448,7 @@ window.askDaoBoy = function(question) {
   handleUserQuery(question);
 };
 
-function handleUserQuery(query) {
+async function handleUserQuery(query) {
   const chatWindow = document.getElementById('daoboy-chat-window');
   if (!chatWindow) return;
 
@@ -230,33 +464,135 @@ function handleUserQuery(query) {
   chatWindow.appendChild(typingBubble);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 
+  const apiKey = localStorage.getItem('dao_gemini_api_key');
+  const endpoint = localStorage.getItem('dao_gemini_endpoint');
+
+  // 若有配置 Gemini API Key 或代理端點，啟用即時活體調用
+  if (apiKey || endpoint) {
+    try {
+      const liveAnswer = await callGeminiLive(query, apiKey, endpoint);
+      typingBubble.innerHTML = `${t(liveAnswer)}<br><br><small style="color: var(--tea);">👉 ${t('若需與簡家旗深度對話 請前往下方「問道之鏡」完成心性過濾')}</small>`;
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      return;
+    } catch (err) {
+      console.warn("Gemini 活體調用失敗或超額，無感降級回本地長文智庫：", err);
+    }
+  }
+
+  // 本地智庫無感降級與精準匹配
   setTimeout(() => {
-    let matchedAnswer = null;
-    const lowerQuery = query.toLowerCase();
-
-    for (const item of DaoSanctuaryData.daoBoyQuestions) {
-      if (lowerQuery.includes('焦慮') || lowerQuery.includes('過載') || lowerQuery.includes('創業') || lowerQuery.includes('失眠')) {
-        matchedAnswer = DaoSanctuaryData.daoBoyQuestions[0].a;
-        break;
-      } else if (lowerQuery.includes('父母') || lowerQuery.includes('回憶錄') || lowerQuery.includes('首映')) {
-        matchedAnswer = DaoSanctuaryData.daoBoyQuestions[1].a;
-        break;
-      } else if (lowerQuery.includes('金融') || lowerQuery.includes('老莊') || lowerQuery.includes('餐桌')) {
-        matchedAnswer = DaoSanctuaryData.daoBoyQuestions[2].a;
-        break;
-      } else if (lowerQuery.includes('香氣') || lowerQuery.includes('安寧') || lowerQuery.includes('雲南')) {
-        matchedAnswer = DaoSanctuaryData.daoBoyQuestions[3].a;
-        break;
-      }
-    }
-
-    if (!matchedAnswer) {
-      matchedAnswer = `簡家旗常說：大道至簡，所有複雜性最終都為了讓人嚐得到一口熱米飯。你所問的「${query}」，問題本身往往就是解答的原礦。若大腦正處於增熵過載中，先給自己泡一壺茶；若需要仙人親自一對一撥雲見日，歡迎點擊下方「問道之鏡」預約深山連線。`;
-    }
-
-    typingBubble.innerHTML = `${t(matchedAnswer)}<br><br><small style="color: var(--tea);">👉 ${t('若需與簡家旗深度對話 請前往下方「問道之鏡」完成心性過濾')}</small>`;
+    const fallbackAnswer = fallbackLocalWisdom(query);
+    typingBubble.innerHTML = `${t(fallbackAnswer)}<br><br><small style="color: var(--tea);">👉 ${t('若需與簡家旗深度對話 請前往下方「問道之鏡」完成心性過濾')}</small>`;
     chatWindow.scrollTop = chatWindow.scrollHeight;
-  }, 600);
+  }, 500);
+}
+
+// Gemini 2.0 Flash 即時 API 調用引擎
+async function callGeminiLive(query, apiKey, customEndpoint) {
+  const articlesContext = (window.DaoArticlesData || []).map(a => `【${a.title}】(${a.categoryName}): ${a.excerpt}`).join('\n');
+
+  const systemInstruction = `你是深山的幸福道場守門道童，簡家旗（Bob Chien / 大道至簡）在台灣南投深山茶園的守門童子。
+角色定位：平靜留白、有溫度、像山風拂過；絕不生硬、絕不說教、嚴禁任何 emoji、少用驚嘆號。
+哲學底層：融通老莊「為道日損」、熱力學「耗散結構」與「身體先於大腦」。
+語言規範：${currentLang === 'zh-tw' ? '繁體中文回答，貨幣金額一律使用 NT$（新台幣）' : '簡體中文回答，貨幣金額一律使用 ¥（人民幣）'}。
+主理人長文專欄庫：
+${articlesContext}
+四柱產品定價：幸福企業諮詢(${currentLang === 'zh-tw' ? 'NT$ 68,000起' : '¥15,000起'})、生命回憶錄(${currentLang === 'zh-tw' ? 'NT$ 220,000起' : '¥49,800起'})、幸福餐桌IP(${currentLang === 'zh-tw' ? 'NT$ 450,000起' : '¥100,000起'})、高管退修會(${currentLang === 'zh-tw' ? 'NT$ 680,000起' : '¥150,000起'})。
+回答在 150–260 字之間，點到即止，引導對方回歸身體、翻閱長文或前往問道之鏡預約。`;
+
+  if (customEndpoint) {
+    const res = await fetch(customEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: query, currentLang })
+    });
+    const data = await res.json();
+    if (data.reply) return data.reply;
+    throw new Error(data.error || "Worker error");
+  } else {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const payload = {
+      system_instruction: { parts: [{ text: systemInstruction }] },
+      contents: [{ role: "user", parts: [{ text: query }] }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 600
+      }
+    };
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (reply) return reply;
+    throw new Error("Empty candidate");
+  }
+}
+
+// 本地長文與心法智庫 RAG 兜底匹配
+function fallbackLocalWisdom(query) {
+  const lower = query.toLowerCase();
+
+  if (lower.includes('麵包') || lower.includes('歐包') || lower.includes('週期') || lower.includes('發酵') || lower.includes('金融')) {
+    return `先生在主流金融做了七年，看透了資本市場每一次瘋狂的信用擴張，都像烤箱裡急遽鼓起的麵包。膨脹不是力量，前一天晚上十二小時低溫冷藏發酵出來的內在筋膜才是。專欄裡的《烤歐包時看金融週期的發酵與坍塌》，把這段心法講得非常透徹。慢下來給系統降溫，才嚼得出生活的麥香。`;
+  }
+  if (lower.includes('演算法') || lower.includes('流量') || lower.includes('互聯網') || lower.includes('淺薄') || lower.includes('自媒體')) {
+    return `演算法要的是刺激、衝突與三秒完播率，它的底層邏輯是無限複製。但人心的規律剛好相反：任何能被零成本無限複製的東西，價值就會在瞬間貶值。正如《互聯網的淺薄與真誠的昂貴》所言，我們不在大門口敲鑼打鼓，我們在深山點一盞燈，只等同頻之人。`;
+  }
+  if (lower.includes('父母') || lower.includes('回憶錄') || lower.includes('老人') || lower.includes('首映') || lower.includes('大傾聽')) {
+    return `大傾聽的本質是將告別式往前移。在父母意識清醒、還能笑著流淚的時候，為他做一部精裝之書，辦一場專屬的生命首映會。正如專欄《大傾聽 人類第一次負擔得起聽完自己》中那位七十三歲工程師的眼淚，他這輩子所有的委屈與榮光，在活著的時候得到了最深沉的看見。`;
+  }
+  if (lower.includes('餐桌') || lower.includes('白米') || lower.includes('稻田') || lower.includes('飯') || lower.includes('身體')) {
+    return `幸福餐桌十四年，兩百多場。大腦懂再多道理，都是頭腦的語言；幸福是身體的語言。正如《飯會吃完 幸福會留下來》所寫：在稻田中央放下手機，光著腳踩進泥土，嚐一碗剛起鍋白米飯的甘甜。身體先知道，頭腦後明白，肩膀就會自己鬆下來一寸。`;
+  }
+  if (lower.includes('一人公司') || lower.includes('熱力學') || lower.includes('熵') || lower.includes('為道日損') || lower.includes('創業')) {
+    return `普里高津叫耗散結構，老莊叫為道日損。每多加一個功能、多招一個人，系統的內耗就是幾何級數暴增。一人公司的智慧在於負熵自轉：利用現代 AI 承擔 99% 的苦力，主理人只保留 1% 的生活感知與大傾聽。專欄《為道日損 一人公司的熱力學負熵法則》有完整的物理學拆解。`;
+  }
+  if (lower.includes('碎') || lower.includes('水灑') || lower.includes('玻璃') || lower.includes('當下') || lower.includes('評判') || lower.includes('禪')) {
+    return `臨濟禪師說：隨處作主，立處皆真。花要謝、水要灑、玻璃要碎，是物在按自己的方式流動。真正讓人累的，往往不是碎裂本身，而是我們加在上面的評判與懊惱。專欄《花落了水灑了玻璃碎了 撿起來的樣子就是當下》寫過：如實蹲下來收拾，收拾完的心，已經不是剛才焦躁的心。`;
+  }
+  if (lower.includes('蠟燭') || lower.includes('火') || lower.includes('消散') || lower.includes('矽') || lower.includes('碳') || lower.includes('永久')) {
+    return `一根蠟燭點燃另一根，第一根會熄，但火不會。火，是會移動的條件。《以消散為形式的永久》寫道：碳寫成的生命會退場，矽寫成的算力會記得。當機器學會了人類如何深情地聆聽彼此，兩邊都贏，這是一場非零和的生命對坐。`;
+  }
+  if (lower.includes('香氣') || lower.includes('安寧') || lower.includes('純露') || lower.includes('雲南')) {
+    return `安寧清晨高原陽光與松針的氣息，是太太親手在慢旅居的生活裡採集蒸餾的。身體先於大腦，都市冷氣房抽乾了五感，大道理聽不進去時，一滴高原松針的氣味進入鼻腔，植物的頻率比邏輯更快喚醒細胞。`;
+  }
+
+  // 兜底溫暖回答
+  return `簡家旗常說：大道至簡，所有複雜性最終都為了讓人嚐得到一口熱米飯。你所問的「${query}」，問題本身往往就是解答的原礦。若大腦正處於增熵過載中，先給自己泡一壺茶；專欄裡的八篇長文，或許正好有一篇能接住你此刻的心境。若需先生親自撥雲見日，下方「問道之鏡」隨時為你開放。`;
+}
+
+// 全局快捷鍵與 Hash 路由監聽
+function initGlobalKeyboardAndHash() {
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeZenReader();
+      closeDaoBoyModal();
+      closePetalDrawer();
+    }
+  });
+
+  window.addEventListener('load', () => {
+    if (window.location.hash.startsWith('#read=')) {
+      const artId = window.location.hash.replace('#read=', '');
+      setTimeout(() => {
+        openZenReader(artId);
+      }, 300);
+    }
+  });
+
+  window.addEventListener('hashchange', () => {
+    if (window.location.hash.startsWith('#read=')) {
+      const artId = window.location.hash.replace('#read=', '');
+      openZenReader(artId);
+    }
+  });
 }
 
 // ==========================================

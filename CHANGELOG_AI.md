@@ -168,6 +168,15 @@ daoissimple/
   * 建立 `DAO_BOY_GEMINI_STANDARD.md`：完整制定系統提示詞（System Instruction）、零成本 Cloudflare Worker 安全反向代理代碼、前端雙軌無感降級架構（429超額/斷線時自動退回本地 `content.js` 心法）。
   * 同步在 `AGENTS.md`、`CLAUDE.md`、`README.md` 建立索引，保障未來任何 AI 接手時不會洩漏金鑰且能無縫實作。
 
+### [2026-10-12 14:55] 深山長文專欄四大清泉上線、Zen Reader 讀書卷與道童活體心智實作
+* **起因**：主理人指示「Wisdom Stream 專欄內容太短無法沉浸，納入俗人對話錄、幸福對話錄、一人公司感悟、禪宗生活感悟；開啟道童活體對談；網頁部署上線」。
+* **動作**：
+  * 建立 `js/articles.js`：完整收錄自 Google Drive 與 Obsidian 萃取的 8 篇深度沉浸長文（涵蓋烤歐包、淺薄互聯網、73歲大傾聽、幸福餐桌14年、為道日損負熵、AI時代一碗熱白飯、玻璃碎當下、消散中的永久）。
+  * 升級 Wisdom Stream：建立「全部 / 俗人對話錄 / 幸福對話錄 / 一人公司感悟 / 禪宗生活感悟」極簡四分類切換器。
+  * 打造產地讀書卷（Zen Reader View）：680px 寬度、2.0 行高呼吸感宋體、朱印收尾、支援 Esc 退出與獨立 `#read=` 連結分享，文末直接聯動「與道童聊聊這篇文章」。
+  * 實作道童「活體對談」：支援點擊「⚙️ 活體配置」存取私有 Gemini API Key，直接發起 `gemini-2.0-flash` 活體推演；未配 Key 時自動無感切換至 8 篇長文與產品庫之深度 RAG 本地智庫。
+  * 全自動繁簡同步建置並成功部署至 GitHub Pages。
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)
