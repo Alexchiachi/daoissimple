@@ -4,25 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>大道至簡 · 深山的幸福道場 (Dao is simple)</title>
-  <meta name="description" content="簡家旗一人公司活體門戶。做幸福的事，把幸福做成有價值。融通7年主流金融與老莊道法，台灣南投×雲南安寧雙基地，花心高客單大傾聽與太太共創雲南香氣信物。">
+  <meta name="description" content="做幸福的事 讓幸福變成有價值的事。簡家旗一人公司活體門戶，融通7年主流金融與老莊道法，台灣南投與雲南安寧雙基地。">
   <meta property="og:title" content="大道至簡 · 深山的幸福道場">
-  <meta property="og:description" content="做幸福的事，把幸福做成有價值。簡家旗一人公司活體門戶。">
+  <meta property="og:description" content="做幸福的事 讓幸福變成有價值的事。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://alexchiachi.github.io/daoissimple/">
   
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Serif+TC:wght@200;300;400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Serif+TC:wght@200;300;400;500&display=swap">
+  </noscript>
+
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20y=%220%22%20width=%22100%22%20height=%22100%22><text y=%22.9em%22 font-size=%2290%22>🍵</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.85em%22 font-size=%2280%22 font-family=%22serif%22 fill=%22%2382663F%22>道</text></svg>">
 </head>
 <body>
 
-  <!-- 頂部導航 (Apple 流體毛玻璃) -->
+  <!-- 頂部導航 -->
   <header class="site-nav">
     <div class="sanctuary-container nav-wrapper">
       <a href="#" class="brand-badge">
         <div class="brand-seal">道</div>
         <div class="brand-text">
           <h1>大道至簡</h1>
-          <p>THE DAO SANCTUARY</p>
+          <p>The Dao Sanctuary</p>
         </div>
       </a>
 
@@ -37,12 +44,12 @@
         </ul>
       </nav>
 
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <button id="lang-toggle-btn" class="btn-lang-toggle" title="切換繁簡中文">
-          <span>🌐</span> <span class="lang-label">簡體中文</span>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <button id="lang-toggle-btn" class="lang-switch-btn" title="切換繁簡中文">
+          简体
         </button>
-        <a href="#mirror" class="btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">
-          向仙人問道
+        <a href="#mirror" class="btn-cta" style="padding: 6px 18px; font-size: 0.85rem;">
+          向仙人問道 →
         </a>
       </div>
     </div>
@@ -51,27 +58,25 @@
   <main>
     <!-- 模組一：道場山門 (Hero) -->
     <section id="hero" class="hero-section sanctuary-container">
-      <div class="hero-pill reveal-on-scroll">
-        <span class="hero-pill-dot"></span>
-        <span>台灣南投深山茶園 × 雲南安寧慢旅居 雙基地</span>
-      </div>
+      <div class="eyebrow reveal">南投深山茶園<i class="gap"> </i>雲南安寧慢旅居</div>
 
-      <h1 class="hero-title reveal-on-scroll font-serif">
-        做幸福的事，<br>把幸福做成有價值。
+      <h1 class="hero-title reveal">
+        <span class="hero-title-line">做幸福的事</span>
+        <span class="hero-title-line">把幸福做成有價值</span>
       </h1>
 
-      <p class="hero-subtitle reveal-on-scroll">
-        7年主流金融與基金經理人經驗，退回大地生活摸爬滾打二十載。<br>
-        融通老莊「為道日損」與熱力學「耗散結構」，陪你在大腦過載的時代，把生命與商業還給身體。
+      <p class="hero-subtitle reveal">
+        7 年主流金融與基金經理人經驗<i class="gap"> </i>回歸大地生活二十載<br>
+        融通老莊為道日損與熱力學耗散結構<i class="gap"> </i>在大腦過載的時代<i class="gap"> </i>把生命與商業還給身體
       </p>
 
-      <p class="hero-bio reveal-on-scroll">
-        「我不是導師或大師，而是一個願意用誠實陪走一段路的中年大叔。」
+      <p class="hero-bio reveal">
+        我不是導師或大師<i class="gap"> </i>只是一個願意用誠實陪走一段路的中年大叔
       </p>
 
-      <div class="hero-cta reveal-on-scroll">
-        <a href="#core" class="btn-primary">探索四大花心支柱</a>
-        <a href="#petals" class="btn-secondary">聞一縷雲南安寧香氣</a>
+      <div class="hero-actions reveal">
+        <a href="#core" class="btn-cta">探索四大花心支柱 →</a>
+        <a href="#petals" class="btn-cta quiet">聞一縷雲南安寧香氣 →</a>
       </div>
 
       <!-- 雙基地展示卡 -->
@@ -83,10 +88,10 @@
     <!-- 模組二：俗人對話錄 (Wisdom Stream) -->
     <section id="wisdom" class="sanctuary-section">
       <div class="sanctuary-container">
-        <div class="section-header reveal-on-scroll">
-          <span class="section-tag">Wisdom Stream</span>
-          <h2 class="section-title font-serif">俗人對話錄</h2>
-          <p class="section-desc">生活到哪裡，原礦就採到哪裡。不做流量行銷八股，只有做菜、喝茶、行走中的真實生命反思。</p>
+        <div class="section-header reveal">
+          <div class="eyebrow">Wisdom Stream</div>
+          <h2 class="h-section">俗人對話錄</h2>
+          <p class="section-desc">生活到哪裡<i class="gap"> </i>原礦就採到哪裡<br>不做流量行銷八股<i class="gap"> </i>只有做菜喝茶行走中的真實生命反思</p>
         </div>
 
         <div id="wisdom-container" class="wisdom-grid">
@@ -98,10 +103,10 @@
     <!-- 模組三：花瓣 · 生活芬芳信物 (The Petals) -->
     <section id="petals" class="sanctuary-section">
       <div class="sanctuary-container">
-        <div class="section-header reveal-on-scroll">
-          <span class="section-tag">The Petals · 共創芬芳</span>
-          <h2 class="section-title font-serif">花瓣 · 生活芬芳信物</h2>
-          <p class="section-desc">身體先於大腦。大腦太累時，先讓鼻子和舌尖嚐到幸福。由太太與身邊同頻夥伴主理，節氣批次限量流動。</p>
+        <div class="section-header reveal">
+          <div class="eyebrow">The Petals · 共創芬芳</div>
+          <h2 class="h-section">花瓣 · 生活芬芳信物</h2>
+          <p class="section-desc">身體先於大腦<i class="gap"> </i>大腦太累時<i class="gap"> </i>先讓鼻子和舌尖嚐到幸福<br>由太太與身邊同頻夥伴主理<i class="gap"> </i>節氣批次限量流動</p>
         </div>
 
         <div id="petals-container" class="petals-grid">
@@ -113,10 +118,10 @@
     <!-- 模組四：花心 · 四大核心道場 (The Core) -->
     <section id="core" class="sanctuary-section">
       <div class="sanctuary-container">
-        <div class="section-header reveal-on-scroll">
-          <span class="section-tag">The Core · 精神之錨</span>
-          <h2 class="section-title font-serif">花心 · 四大核心道場</h2>
-          <p class="section-desc">簡家旗 1% 仙人親授。極高精神密度、零庫存、公開定價即承諾。拒絕大眾化擴張，只服務願意付出清醒代價的同頻者。</p>
+        <div class="section-header reveal">
+          <div class="eyebrow">The Core · 精神之錨</div>
+          <h2 class="h-section">花心 · 四大核心道場</h2>
+          <p class="section-desc">簡家旗 1% 仙人親授<i class="gap"> </i>極高精神密度<i class="gap"> </i>零庫存公開定價即承諾<br>拒絕大眾化擴張<i class="gap"> </i>只服務願意付出清醒代價的同頻者</p>
         </div>
 
         <div id="core-container" class="core-grid">
@@ -128,24 +133,24 @@
     <!-- 模組五：守門道童 (AI 數位雙生對話鏡) -->
     <section id="daoboy" class="sanctuary-section">
       <div class="sanctuary-container">
-        <div class="section-header reveal-on-scroll">
-          <span class="section-tag">AI Digital Twin</span>
-          <h2 class="section-title font-serif">深山道童 · 心性對談鏡</h2>
-          <p class="section-desc">基於簡家旗數百段真實生命語音與老莊金融向量底層。走進道場前，不妨先與道童進行一場深夜心靈對坐。</p>
+        <div class="section-header reveal">
+          <div class="eyebrow">AI Digital Twin</div>
+          <h2 class="h-section">深山道童 · 心性對談鏡</h2>
+          <p class="section-desc">基於簡家旗真實生命語音與老莊金融向量底層<br>走進道場前<i class="gap"> </i>不妨先與道童進行一場深夜心靈對坐</p>
         </div>
 
-        <div class="daoboy-box reveal-on-scroll">
+        <div class="daoboy-box reveal">
           <div class="daoboy-header">
-            <div class="daoboy-avatar">童</div>
+            <div class="daoboy-avatar-square">童</div>
             <div class="daoboy-meta">
-              <h3>深山道童 (AI 數位雙生)</h3>
+              <h3>深山道童</h3>
               <p>大道至簡 · 私有向量神經網絡即時檢索中</p>
             </div>
           </div>
 
           <div id="daoboy-chat-window" class="daoboy-chat-window">
             <div class="chat-bubble bot">
-              客人遠道而來，山中已備好清茶。若心中有關於個人內耗、父母傳承、或是商業增熵的困惑，隨時道來。
+              客人遠道而來<i class="gap"> </i>山中已備好清茶。若心中有關於個人內耗、父母傳承或是商業增熵的困惑<i class="gap"> </i>隨時道來。
             </div>
           </div>
 
@@ -155,7 +160,7 @@
 
           <div class="daoboy-input-row">
             <input type="text" id="daoboy-input" class="daoboy-input" placeholder="問道童一句話，例如：創業者大腦過載怎麼辦？">
-            <button id="daoboy-send-btn" class="btn-primary" style="border-radius: 30px; padding: 0 24px;">傳送</button>
+            <button id="daoboy-send-btn" class="btn-cta" style="padding: 10px 20px;">傳送 →</button>
           </div>
         </div>
       </div>
@@ -164,79 +169,87 @@
     <!-- 模組六：問道之鏡 (The Gatekeeping Mirror) -->
     <section id="mirror" class="sanctuary-section">
       <div class="sanctuary-container">
-        <div class="section-header reveal-on-scroll">
-          <span class="section-tag">The Mirror · 承諾儀式</span>
-          <h2 class="section-title font-serif">問道之鏡 · 預約過濾</h2>
-          <p class="section-desc">這不是一份報名表，而是一面誠實的鏡子。每週仙人僅開放一至二席深度對談，完成心性回答後即可鎖定日曆通道。</p>
+        <div class="section-header reveal">
+          <div class="eyebrow">The Mirror · 承諾儀式</div>
+          <h2 class="h-section">問道之鏡 · 預約過濾</h2>
+          <p class="section-desc">這不是一份報名表<i class="gap"> </i>而是一面誠實的鏡子<br>每週僅開放一至二席深度對談<i class="gap"> </i>完成心性回答後即可鎖定日曆通道</p>
         </div>
 
-        <div class="mirror-box reveal-on-scroll" id="mirror-section">
+        <div class="mirror-box reveal" id="mirror-section">
           <form id="mirror-form">
-            <div class="mirror-step">
-              <label class="mirror-step-title">一、 你目前最渴望轉化的生命或企業病灶是什麼？</label>
+            <div style="margin-bottom: var(--s-3);">
+              <label style="display: block; font-size: 0.95rem; margin-bottom: 6px;">一、 你目前最渴望轉化的生命或企業病灶是什麼？</label>
               <textarea id="mirror-q1" class="mirror-textarea" required placeholder="如：創業三年大腦極度增熵 / 想要在父母70歲前完成一部生命回憶錄..."></textarea>
             </div>
 
-            <div class="mirror-step">
-              <label class="mirror-step-title">二、 如果這個問題沒有被解開，對你的生命帶來最大的消耗是什麼？</label>
+            <div style="margin-bottom: var(--s-3);">
+              <label style="display: block; font-size: 0.95rem; margin-bottom: 6px;">二、 如果這個問題沒有被解開，對你的生命帶來最大的消耗是什麼？</label>
               <textarea id="mirror-q2" class="mirror-textarea" required placeholder="請誠實描繪身體的感覺、睡眠、或是組織的內耗..."></textarea>
             </div>
 
-            <div class="mirror-step">
-              <label class="mirror-step-title">三、 你是否已準備好付出相應的承諾（時間、心神與公開標價），與仙人平視對坐？</label>
+            <div style="margin-bottom: var(--s-4);">
+              <label style="display: block; font-size: 0.95rem; margin-bottom: 6px;">三、 你是否已準備好付出相應的承諾（時間、心神與公開標價），與仙人平視對坐？</label>
               <textarea id="mirror-q3" class="mirror-textarea" required placeholder="定價即承諾。我們不提供廉價快餐諮詢，只服務清醒交付轉化者。"></textarea>
             </div>
 
-            <button type="submit" class="btn-primary" style="width: 100%; padding: 16px; font-size: 1rem;">
-              映照內心，開啟預約通道 →
+            <button type="submit" class="btn-cta" style="width: 100%; padding: 14px;">
+              映照內心 開啟預約通道 →
             </button>
           </form>
 
           <!-- 提交後的雙軌預約面板 -->
           <div id="mirror-result-box" style="display: none;">
-            <div style="text-align: center; margin-bottom: 24px;">
-              <div style="font-size: 40px; margin-bottom: 12px;">🪞</div>
-              <h3 class="font-serif" style="font-size: 1.5rem; margin-bottom: 8px;">鏡面映照清晰 · 結緣通關碼</h3>
-              <p style="color: var(--accent-tea); font-weight: bold; font-size: 1.4rem; letter-spacing: 0.1em;" id="booking-code-span">
+            <div style="text-align: center; margin-bottom: var(--s-3);">
+              <h3 style="font-size: 1.4rem; margin-bottom: 6px;">鏡面映照清晰 · 結緣通關碼</h3>
+              <p style="font-family: var(--font-display); color: var(--tea); font-size: 1.6rem; letter-spacing: 0.15em;" id="booking-code-span">
                 DAO-882319
               </p>
-              <p style="color: var(--text-muted); font-size: 0.9rem;">請憑此通關碼，選擇您的所在地管道鎖定日曆時段：</p>
+              <p style="color: var(--mist); font-size: 0.88rem;">請憑此通關碼 選擇您的所在地管道鎖定日曆時段：</p>
             </div>
 
             <div class="channel-tabs">
-              <button class="channel-tab-btn active" id="tab-tw" onclick="switchChannel('tw')">🇹🇼 台灣與國際綠色通道</button>
-              <button class="channel-tab-btn" id="tab-cn" onclick="switchChannel('cn')">🇨🇳 大陸微信極速通道</button>
+              <button class="channel-tab-btn active" id="tab-tw" onclick="switchChannel('tw')">台灣與國際通道</button>
+              <button class="channel-tab-btn" id="tab-cn" onclick="switchChannel('cn')">大陸微信專屬通道</button>
             </div>
 
             <div id="content-tw" class="channel-content">
-              <p style="margin-bottom: 16px; color: var(--text-muted);">
-                點擊下方按鈕加入 LINE 官方帳號，回傳您的通關碼，道場將自動派發 Cal.com 專屬行事曆時段：
+              <p style="margin-bottom: var(--s-3); color: var(--ink-soft); font-size: 0.92rem;">
+                點擊下方按鈕加入 LINE / 日曆專屬對話，回傳您的通關碼，道場將自動派發專屬時段：
               </p>
-              <a href="https://alexchiachi.github.io/happy/inner-flow/" target="_blank" class="btn-primary" style="background: #06C755;">
-                開啟專屬 LINE / 日曆預約
+              <a href="https://alexchiachi.github.io/happy/inner-flow/" target="_blank" class="btn-cta" style="display: inline-block;">
+                開啟專屬 LINE / 日曆預約 →
               </a>
             </div>
 
             <div id="content-cn" class="channel-content" style="display: none;">
-              <p style="margin-bottom: 16px; color: var(--text-muted);">
-                大陸企業與個人客戶，請加入道場專屬微信秘書，備註您的通關碼以完成合規對公或專屬對話：
+              <p style="margin-bottom: var(--s-2); color: var(--ink-soft); font-size: 0.92rem;">
+                大陸企業與個人客戶，請加入道場專屬微信秘書，備註通關碼以完成對話：
               </p>
-              <div style="background: #FFF; display: inline-block; padding: 12px 24px; border-radius: 12px; border: 1px solid var(--border-soft); font-weight: bold; margin-bottom: 16px;">
+              <div style="background: var(--paper); display: inline-block; padding: 10px 24px; border: 1px solid var(--line); font-family: var(--font-display); letter-spacing: 0.1em; margin-bottom: var(--s-2);">
                 微訊號：daoissimple_live
               </div>
               <div>
-                <a href="#hero" class="btn-primary" onclick="alert('已複製微訊號：daoissimple_live，請至微信搜尋添加。')">
-                  複製微訊號並確認
-                </a>
+                <button class="btn-cta" onclick="alert('已複製微訊號：daoissimple_live，請至微信搜尋添加。')">
+                  複製微訊號 →
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
     </section>
+
+    <!-- 朱印收尾 (依據 Happy DESIGN.md 規範) -->
+    <div class="seal reveal">
+      <div class="seal-mark">
+        <span>大道</span>
+        <span>至簡</span>
+      </div>
+      <div class="seal-tag">The Dao Sanctuary · 2026</div>
+    </div>
   </main>
 
-  <!-- 節氣抽屜 (Apple Drawer) -->
+  <!-- 節氣抽屜 -->
   <div id="petal-drawer" class="drawer-overlay" onclick="if(event.target === this) closePetalDrawer()">
     <div class="drawer-panel">
       <button class="drawer-close-btn" onclick="closePetalDrawer()">✕</button>
@@ -251,10 +264,10 @@
     <div class="sanctuary-container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <h3 class="font-serif">大道至簡 · 深山的幸福道場</h3>
-          <p style="line-height: 1.8; color: #8F9992;">
-            做幸福的事，把幸福做成有價值。<br>
-            台灣南投（唯一生活居住地） × 雲南安寧（慢旅居幸福之家）。<br>
+          <h3 style="font-weight: 400; letter-spacing: 0.08em;">大道至簡 · 深山的幸福道場</h3>
+          <p style="line-height: 1.85; color: var(--mist);">
+            做幸福的事 讓幸福變成有價值的事<br>
+            台灣南投（生活居住地） × 雲南安寧（慢旅居幸福之家）。<br>
             一人公司活體品牌，低能耗、高產出、負熵自轉。
           </p>
         </div>
@@ -262,20 +275,20 @@
         <div class="footer-links">
           <h4>道場核心</h4>
           <ul>
-            <li><a href="#core">生命回憶錄 × 大傾聽</a></li>
+            <li><a href="#core">幸福企業線上諮詢</a></li>
+            <li><a href="#core">生命回憶錄 大傾聽</a></li>
             <li><a href="#core">幸福餐桌 IP 指導</a></li>
             <li><a href="#core">高管 Inner Flow 退修會</a></li>
-            <li><a href="#core">幸福企業線上諮詢</a></li>
           </ul>
         </div>
 
         <div class="footer-links">
           <h4>生活信物</h4>
           <ul>
-            <li><a href="#petals">雲南的香氣 · 安寧清晨</a></li>
+            <li><a href="#petals">雲南的香氣 安寧清晨</a></li>
             <li><a href="#petals">南投深山手採茶席</a></li>
             <li><a href="#wisdom">俗人對話錄</a></li>
-            <li><a href="https://github.com/Alexchiachi/daoissimple" target="_blank">GitHub 開源架構</a></li>
+            <li><a href="https://github.com/Alexchiachi/daoissimple" target="_blank">GitHub 開源庫</a></li>
           </ul>
         </div>
       </div>
