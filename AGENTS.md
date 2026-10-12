@@ -1,7 +1,7 @@
 # AGENTS.md · 深山的幸福道場 (The Dao Sanctuary)
 
 > 本文件是給所有 AI 助手（包括 Antigravity、Claude Code、Cursor、Copilot、Codex 及未來新對話 AI）的**單一真理源與交接手冊**。  
-> 任何接手本專案的 AI，在閱讀任何代碼前**必須先閱讀並嚴格遵守本文件、`AI_HUMAN_COLLABORATION_PARADIGM.md` 與 `DESIGN.md`**。
+> 任何接手本專案的 AI，在閱讀任何代碼前**必須先閱讀並嚴格遵守本文件、`AI_HUMAN_COLLABORATION_PARADIGM.md`、`HAPPINESS_PERFORMANCE_ART_PRACTICE.md` 與 `DESIGN.md`**。
 
 ---
 
