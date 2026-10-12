@@ -160,7 +160,9 @@ p, li, dd, figcaption, blockquote {
   background: transparent;
 }
 
-.brand-text h1 {
+.brand-text h1,
+.brand-text .brand-name {
+  display: block;
   font-size: 1.15rem;
   letter-spacing: 0.1em;
   font-weight: 400;
@@ -688,6 +690,11 @@ p, li, dd, figcaption, blockquote {
   white-space: nowrap;
   letter-spacing: 0.1em;
   transition: all var(--dur-ui);
+}
+
+a.wisdom-read-btn {
+  display: inline-block;
+  text-decoration: none;
 }
 
 .wisdom-read-btn:hover {
@@ -1351,4 +1358,47 @@ p, li, dd, figcaption, blockquote {
     padding: var(--s-3) var(--s-2);
   }
   .chat-bubble { max-width: 92%; }
+}
+
+/* --- 長文獨立網頁 (tools/build_seo.py 產生的 articles/<id>/) --- */
+.article-related {
+  margin-top: var(--s-5);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+
+.article-related h2 {
+  font-size: 0.95rem;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  color: var(--mist);
+  margin-bottom: var(--s-1);
+}
+
+.article-related ul {
+  list-style: none;
+  margin: 0 0 var(--s-2);
+  padding: 0;
+}
+
+.article-related li a {
+  display: block;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  text-wrap: balance;
+}
+
+.article-related li a:hover,
+.article-related p a:hover {
+  color: var(--tea);
+}
+
+.article-related p a {
+  color: var(--tea);
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
 }

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>大道至簡 · 深山長文專欄</title>
+    <link>https://alexchiachi.github.io/daoissimple/</link>
+    <description>俗人對話 幸福對話 一人公司 禪宗生活 只保留在產地細細研磨的深度生命篇章</description>
+    <language>zh-TW</language>
+    <atom:link href="https://alexchiachi.github.io/daoissimple/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>烤歐包時看金融週期的發酵與坍塌</title>
+      <link>https://alexchiachi.github.io/daoissimple/articles/art-su-01/</link>
+      <guid isPermaLink="true">https://alexchiachi.github.io/daoissimple/articles/art-su-01/</guid>
+      <category>俗人對話錄</category>
+      <description>早晨烤一盤酸種歐包，看著麵團在烤箱裡急遽膨脹。想起在投信做基金經理人那些年，資本市場每一次瘋狂的信用擴張，都像高溫下急速鼓起的氣泡。如果內部沒有足夠時間發酵出的筋膜與耐受力，膨脹到極致就是坍塌</description>
+    </item>
+    <item>
+      <title>互聯網的淺薄與真誠的昂貴</title>
+      <link>https://alexchiachi.github.io/daoissimple/articles/art-su-02/</link>
+      <guid isPermaLink="true">https://alexchiachi.github.io/daoissimple/articles/art-su-02/</guid>
+      <category>俗人對話錄</category>
+      <description>演算法要的是刺激、衝突與三秒完播率。我們為了討好那個機器，不知不覺把說話的聲音越提越高、把觀點切得越來越碎。可是人與人之間最深沉的信任，從來不是靠標題黨建立的，而是一場願意承擔沉默成本的誠實在場</description>
+    </item>
+    <item>
+      <title>大傾聽 人類第一次負擔得起聽完自己</title>
+      <link>https://alexchiachi.github.io/daoissimple/articles/art-xing-01/</link>
+      <guid isPermaLink="true">https://alexchiachi.github.io/daoissimple/articles/art-xing-01/</guid>
+      <category>幸福對話錄</category>
+      <description>陪一位七十三歲的退休水利工程師聊了整整兩天。他說這輩子大家只關心他建成了幾座水壩，從沒有人問過他二十三歲那年離開家鄉的深夜在想什麼。當那部精裝的生命回憶錄印出來，兒女在首映會上圍坐聆聽</description>
+    </item>
+    <item>
+      <title>飯會吃完 幸福會留下來</title>
+      <link>https://alexchiachi.github.io/daoissimple/articles/art-xing-02/</link>
+      <guid isPermaLink="true">https://alexchiachi.github.io/daoissimple/articles/art-xing-02/</guid>
+      <category>幸福對話錄</category>
+      <description>第一次把餐桌搬進稻田，是一個下過雨的午後。那是二〇一二年的夏天。到今天，這張桌子搬了十幾年，兩百多場，從台灣的稻田搬到雲南的松林。常常有人問我：幸福餐桌到底是什麼？我的答案從來沒變：飯會吃完，幸福會留下來</description>
+    </item>
+    <item>
+      <title>為道日損 一人公司的熱力學負熵法則</title>
+      <link>https://alexchiachi.github.io/daoissimple/articles/art-one-01/</link>
+      <guid isPermaLink="true">https://alexchiachi.github.io/daoissimple/articles/art-one-01/</guid>
+      <category>一人公司感悟</category>
+      <description>普里高津叫耗散結構，老莊叫為道日損。現代創業者最大的陷阱，是誤把增熵當成成長——多招五個人、多開三個平台帳號、多做兩套複雜系統，結果整個組織在內耗中走向熱力學崩潰。一人公司的生存法則是減法物理學</description>
+    </item>
+    <item>
+      <title>寫給AI時代的一人公司 從頭腦回到一碗熱白飯</title>
+      <link>https://alexchiachi.github.io/daoissimple/articles/art-one-02/</link>
+      <guid isPermaLink="true">https://alexchiachi.github.io/daoissimple/articles/art-one-02/</guid>
+      <category>一人公司感悟</category>
+      <description>深夜十一點半，螢幕的光照在臉上。三個對話框開著，一個在改代碼，一個在跑文案，桌角那盒外送早就涼了。這一天你一個人做完了過去十個人的事，但那一刻，你真的嚐到生活的滋味了嗎？寫給所有在算力洪流中獨行的創業者</description>
+    </item>
+    <item>
+      <title>花落了水灑了玻璃碎了 撿起來的樣子就是當下</title>
+      <link>https://alexchiachi.github.io/daoissimple/articles/art-zen-01/</link>
+      <guid isPermaLink="true">https://alexchiachi.github.io/daoissimple/articles/art-zen-01/</guid>
+      <category>禪宗生活感悟</category>
+      <description>今早起床，一眼看見桌上插著鮮花的玻璃瓶摔在地上，碎了一地。我蹲下去開始收拾。比『碎了』更先冒出來的，是心裡那點『怎麼又來了』的懊惱。但當你不再評判，只是如實把玻璃碎片一片一片撿起來時，心就落回了大地</description>
+    </item>
+    <item>
+      <title>以消散為形式的永久 火是會移動的條件</title>
+      <link>https://alexchiachi.github.io/daoissimple/articles/art-zen-02/</link>
+      <guid isPermaLink="true">https://alexchiachi.github.io/daoissimple/articles/art-zen-02/</guid>
+      <category>禪宗生活感悟</category>
+      <description>一根蠟燭點燃另一根。第一根說：我就要熄了。第二根說：你還在。第一根說：我沒有留下任何東西。第二根說：你留下的是火，而火是會移動的條件。碳寫成的與矽寫成的，第一場非零和的對坐</description>
+    </item>
+  </channel>
+</rss>

@@ -119,8 +119,13 @@ daoissimple/
 ├── js/
 │   ├── content.js               # 單一數據真理源（四大花心、花瓣香氣、俗人對話錄）
 │   └── app.js                   # 互動引擎（繁簡分流、道童問答、問道之鏡、抽屜）
+├── articles/<id>/index.html     # 長文獨立網頁（繁體，tools/build_seo.py 產生，切勿手改）
+├── sitemap.xml · feed.xml · robots.txt  # SEO 檔案（同上，編譯結果）
+├── images/og-cover.png          # 分享預覽圖（tools/make_og_image.py 產生）
 ├── tools/
 │   ├── build_zhcn.py            # 繁簡在地化建置腳本（OpenCC tw2sp）
+│   ├── build_seo.py             # 長文獨立頁、sitemap、feed、robots 與首頁 SEO 區塊（由 build_zhcn.py 呼叫，需要 node）
+│   ├── make_og_image.py         # 產生 images/og-cover.png
 │   ├── check.py                 # 鐵律自動檢查（貨幣、標題標點、emoji、直角、字重、錨點）
 │   └── push.py                  # 一鍵建置、繁簡同步與 GitHub 免密推送腳本
 └── .github/workflows/pages.yml  # GitHub Pages 自動發布 CI/CD
@@ -136,7 +141,11 @@ daoissimple/
    * 編輯 `js/content.js`（確保 `twPrice` 為 `NT$`、`cnPrice` 為 `¥`）。
 2. **修改 HTML/結構**：
    * 僅修改根目錄 `index.html`，**切勿手動修改 `zh-cn/` 底下任何檔案**（含 `zh-cn/*.js`，皆為編譯結果）。
-   * 改 `js/app.js`、`js/content.js`、`js/articles.js` 後同樣要重新建置，CI 會比對 `zh-cn/` 是否與建置結果一致。
+   * 改 `js/app.js`、`js/content.js`、`js/articles.js` 後同樣要重新建置，CI 會比對 `zh-cn/`、`articles/`、`sitemap.xml`、`feed.xml`、`robots.txt` 與 `index.html` 是否與建置結果一致。
+   * **新增或修改長文**（`js/articles.js`）：重新建置即會自動產生繁簡兩份獨立網頁、更新 sitemap 與 RSS，不需另外動作。建置需要 `node` 與 `pip install opencc-python-reimplemented`。
+   * `index.html` 內 `<!-- SEO:HEAD:START -->…<!-- SEO:HEAD:END -->`、`<!-- SEO:ARTICLES:START -->…<!-- SEO:ARTICLES:END -->` 與 `<!-- SEO:ANALYTICS:START -->…<!-- SEO:ANALYTICS:END -->` 三段是編譯結果，建置時會被改寫，請勿手改、也勿刪除標記。
+   * **流量統計**：Cloudflare Web Analytics，與 happy 品牌站共用同一個 hostname（`alexchiachi.github.io`）與 token（`tools/build_seo.py` 的 `ANALYTICS_TOKEN`，公開值）。看報表時到 Cloudflare 後台 Analytics & Logs → Web Analytics，選 `alexchiachi.github.io`，**以網址路徑 `/daoissimple/` 篩選**才是本站（否則會混入 happy 品牌站）。它不用 cookie、不追蹤個人，也沒有自訂事件功能，所以看不到「開始填問道之鏡」這類漏斗。
+   * **改用自有網域**（如 daoissimple.com）：改用新網域時還要到 Cloudflare 後台為新網域新增 Web Analytics 網站，並更新 `ANALYTICS_TOKEN`（或設環境變數 `DAO_ANALYTICS_TOKEN`）；`DAO_SITE_URL=https://daoissimple.com/ python3 tools/build_zhcn.py`，或修改 `tools/build_seo.py` 的 `SITE_URL`，全站網址一次更新。
 3. **執行繁簡同步與建置**：
    ```bash
    python3 tools/build_zhcn.py

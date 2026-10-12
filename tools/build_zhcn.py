@@ -9,6 +9,8 @@
   zh-cn/content.js   由 js/content.js 轉換（價格卡片、花瓣、花心、道童問答）
   zh-cn/articles.js  由 js/articles.js 轉換（長文專欄）
   zh-cn/app.js       由 js/app.js 轉換（介面文字、本地智庫的關鍵字與回答）
+並接著呼叫 tools/build_seo.py：長文獨立網頁、sitemap.xml、feed.xml、robots.txt，
+以及 index.html 與 zh-cn/index.html 內的 SEO 標記區塊（需要 node）。
 
 JS 一併轉換的好處：簡體訪客在道童輸入簡體關鍵字（如「面包」「父母」）也能比對到，
 介面訊息、長文與按鈕不再混有繁體字。貨幣由 app.js 依頁面語系選用 cnPrice（¥），
@@ -19,6 +21,9 @@ import os
 import pathlib
 import re
 import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import build_seo  # noqa: E402
 
 try:
     from opencc import OpenCC
@@ -35,7 +40,12 @@ def main():
         sys.exit(f"❌ 找不到來源檔案：{SRC_HTML}")
 
     OUT.mkdir(exist_ok=True)
-    
+
+    # 先更新繁體首頁內的 SEO 標記區塊（canonical、hreflang、OG、JSON-LD、無 JS 長文索引），
+    # 簡體首頁再由它轉換並以簡體資料重寫這兩段
+    tw_articles = build_seo.load_articles(ROOT / "js" / "articles.js")
+    build_seo.update_home(SRC_HTML, "zh-tw", tw_articles)
+
     # 讀取繁體 HTML
     content = SRC_HTML.read_text(encoding="utf-8")
 
@@ -60,7 +70,7 @@ def main():
     # 調整語系切換按鈕，點擊返回繁體版首頁
     converted = re.sub(
         r'<button id="lang-toggle-btn"[^>]*>.*?</button>',
-        '<a href="../index.html" class="lang-switch-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;" title="切換至繁體中文">繁體</a>',
+        '<a href="../index.html" class="lang-switch-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;" title="切换至繁體中文">繁體</a>',
         converted,
         flags=re.DOTALL
     )
@@ -79,6 +89,12 @@ def main():
         (OUT / name).write_text(out, encoding="utf-8")
 
     print(f"🎉 簡體中文版建置完成：{out_file} 與 zh-cn/{{content,articles,app}}.js")
+
+    # SEO：簡體首頁區塊改用簡體資料；長文獨立網頁、sitemap、feed、robots
+    cn_articles = build_seo.load_articles(OUT / "articles.js")
+    build_seo.update_home(out_file, "zh-cn", cn_articles)
+    build_seo.build_pages(tw_articles, cn_articles)
+    print(f"🔎 SEO 建置完成：{len(tw_articles)} 篇長文 × 2 語系、sitemap.xml、feed.xml、robots.txt")
 
 if __name__ == "__main__":
     main()

@@ -380,6 +380,40 @@ daoissimple/
   - Obsidian iCloud 源頭標準
   - Google Drive 雲端文檔
 
+### [2026-10-12] SEO 基礎件與長文獨立網址
+* **起因**：全站檢視發現站內全由 JS 動態渲染、長文只有 `#read=` hash 路由，爬蟲看不到內容、長文也無法單獨分享；缺 canonical、hreflang、Open Graph、sitemap、結構化資料與分享預覽圖，首頁還有兩個 h1。
+* **決議與產出**：
+  1. **`tools/build_seo.py`（新增，由 `build_zhcn.py` 呼叫）**：
+     - 每篇長文產生靜態獨立網頁 `articles/<id>/index.html`（繁）與 `zh-cn/articles/<id>/index.html`（簡）。正文為純 HTML，無 JS 也能讀；含 canonical、繁簡 hreflang 互指、Open Graph、Twitter Card、JSON-LD（Article 加 BreadcrumbList）、延伸閱讀內部連結，並沿用站內紙墨樣式。
+     - `sitemap.xml`（首頁與全部長文，含 hreflang 互指，不放 lastmod 以保持建置結果固定）、`feed.xml` 與 `zh-cn/feed.xml`（RSS 2.0）、`robots.txt`。
+     - 就地改寫 `index.html`／`zh-cn/index.html` 內兩段標記區塊：`SEO:HEAD`（canonical、hreflang、OG、Twitter、JSON-LD 的 Person 與 WebSite）、`SEO:ARTICLES`（無 JS 時的長文索引 noscript）。
+     - 網址只在 `SITE_URL` 一處設定，可用環境變數 `DAO_SITE_URL` 覆寫，改用自有網域時一次更新。
+  2. **`js/app.js`**：文章卡片的「入席靜讀」由 button 改為真實連結 `articles/<id>/`（爬蟲可跟隨），一般點擊仍開沉浸閱讀卷；閱讀卷新增「複製文章連結」。
+  3. **`index.html`／`css/style.css`**：導覽列品牌的 h1 改為 `span.brand-name`，全頁只留一個 h1；新增獨立文章頁與延伸閱讀樣式。
+  4. **`tools/make_og_image.py` 與 `images/og-cover.png`**：1200x630 分享預覽圖（米白紙底、墨色細字、茶褐點綴、一方朱印），LINE 與臉書貼連結時顯示。
+  5. **`tools/check.py` 的 `check_seo()`**：每篇長文繁簡兩頁都在；canonical 與 hreflang 正確；恰有一個 h1；JSON-LD 可解析；相對連結不斷；sitemap 與 feed 完整且無多餘；robots 指向 sitemap；預覽圖為 1200x630 PNG；長文頁併入標題標點、emoji、`NT$`、簡體殘留繁體字檢查。
+  6. **CI**：`check.yml` 改以 `git status --porcelain` 驗證 `zh-cn/`、`articles/`、`sitemap.xml`、`feed.xml`、`robots.txt`、`index.html` 皆與建置結果一致（可抓到未追蹤的新檔案）；`pages.yml` 與 `check.yml` 加入 Node 20（建置需要 node）。
+  7. 簡體切換按鈕的提示文字原本殘留繁體「切換」，已修正；OpenCC 對「通道」的已知轉換怪癖加入檢查例外。
+* **影響範圍**：`tools/build_seo.py`、`tools/make_og_image.py`、`tools/build_zhcn.py`、`tools/check.py`、`.github/workflows/check.yml`、`.github/workflows/pages.yml`、`js/app.js`、`index.html`、`css/style.css`、`images/og-cover.png`、`articles/*`、`zh-cn/*`、`sitemap.xml`、`feed.xml`、`robots.txt`、`.gitignore`、`README.md`、`AGENTS.md`、`CHANGELOG_AI.md`
+* **自檢**：`tools/check.py` 通過；以注入錯誤的副本驗證會正確報錯（錯 canonical、缺頁、壞 JSON-LD、多餘 sitemap 網址、雙 h1、壞連結共 9 項）。Playwright 端對端：卡片為真實連結且點擊仍開閱讀卷、複製的文章網址繁簡各自正確、獨立文章頁版面與標題字重 300、延伸閱讀與繁簡互跳、簡體頁預約按鈕指向簡體首頁、關閉 JS 時看得到 8 篇長文連結、手機版無水平溢出、sitemap／feed／robots／預覽圖皆可取得、無頁面錯誤。
+* **限制與主理人待辦**：
+  - 本站部署在 `github.io/daoissimple/` 子路徑，**搜尋引擎只讀網域根目錄的 `robots.txt`**，所以此處的 `robots.txt` 暫時無效（不影響收錄，預設即允許）。請改用 Google Search Console 與 Bing Webmaster Tools 驗證網站並**手動提交 `https://alexchiachi.github.io/daoissimple/sitemap.xml`**。日後換自有網域，`robots.txt` 即自動生效。
+  - 長文資料只有 `season`（如「2026 霜降」），沒有 ISO 日期，所以 JSON-LD 與 RSS 暫無發佈日。若 `js/articles.js` 日後為文章加上 `datePublished: "2026-10-23"` 欄位，JSON-LD 會自動輸出。
+  - 預覽圖在 LINE、臉書有快取，換圖後可用各平台的偵錯工具重新抓取。
+* **待辦（已知）**：席次與批次剩餘量資料化、電子報名單、量測（Cloudflare Web Analytics）。
+
+### [2026-10-12] 接上 Cloudflare Web Analytics 流量統計
+* **起因**：站上完全沒有流量數據。主理人指出 happy 倉庫已有做過，查證後沿用同一組設定。
+* **查證**：`Alexchiachi/happy` 全站 86 個頁面都使用同一個 token（`bbab4131ad864cc59ac6bdd0c4707adb`），hostname 為 `alexchiachi.github.io`（見其 `shop/README.md`）。本站同在這個 hostname 下，所以**共用同一個 Web Analytics 網站與 token，不必再建站**。片段格式與 happy 完全一致（`type='module'`）。
+* **產出**：
+  1. `tools/build_seo.py`：新增 `ANALYTICS_TOKEN` 與 `analytics_snippet()`；`index.html` 新增 `SEO:ANALYTICS` 標記區塊，建置時寫入統計碼；繁簡長文頁一併帶上；簡體頁的註解文字也轉為簡體。可用 `DAO_ANALYTICS_TOKEN` 覆寫，設為空字串即關閉。
+  2. `tools/check.py`：每一頁（首頁、簡體首頁、16 個長文頁）必須恰有一段統計碼，且 token 與首頁一致。
+* **使用方式**：到 Cloudflare 後台 → Analytics & Logs → Web Analytics，選 `alexchiachi.github.io`，**以網址路徑 `/daoissimple/` 篩選**單看本站。
+* **限制**：Cloudflare Web Analytics 沒有自訂事件功能，只能看瀏覽量、頁面、來源、國家與裝置、網頁速度。「讀完長文、與道童對話、開始填問道之鏡、送出」這類漏斗需另做：建議用 happy 已部署的 Worker 增加一條只計次、不蒐集個人資料的事件路由。
+* **隱私說明待補（需主理人決定）**：`happy/privacy.html` 的「使用 Cloudflare Web Analytics 的頁面」清單只列品牌站、雲南好物與安寧幸福之家，**沒有列入本站**；而本站的問道之鏡與花瓣預約會蒐集三題回答、姓名與聯絡方式，並寄至主理人信箱、存入後台。建議補寫：蒐集哪些資料、用途（僅用於聯繫與預約）、保存位置與期限、如何要求刪除。涉及對外承諾，本次未擅自改寫。
+* **影響範圍**：`tools/build_seo.py`、`tools/check.py`、`index.html`、`zh-cn/*`、`articles/*`、`AGENTS.md`、`CHANGELOG_AI.md`
+* **自檢**：`tools/check.py` 通過，並以缺統計碼與 token 不一致的副本驗證會報錯；瀏覽器端對端無頁面錯誤。真實的 Cloudflare 回報資料需上線後才看得到，沙盒連不到 `cloudflareinsights.com`，未能驗證。
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)

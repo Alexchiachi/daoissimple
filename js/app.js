@@ -215,9 +215,9 @@ function renderWisdomArticles(catId) {
       </div>
       <div class="wisdom-footer">
         <div class="wisdom-quote">${t(item.quote)}</div>
-        <button class="wisdom-read-btn" onclick="openZenReader('${item.id}')">
+        <a class="wisdom-read-btn" href="articles/${item.id}/" onclick="openZenReader('${item.id}'); return false;">
           ${t('入席靜讀')} →
-        </button>
+        </a>
       </div>
     </div>
   `).join('');
@@ -263,6 +263,9 @@ window.openZenReader = function(articleId) {
         <button class="btn-cta quiet" onclick="closeZenReader(); scrollToMirror('${article.title}')">
           ${t('向仙人問道預約')} →
         </button>
+        <button class="btn-cta quiet" onclick="copyText(articleUrl('${article.id}'), this)">
+          ${t('複製文章連結')}
+        </button>
       </div>
     </div>
   `;
@@ -270,6 +273,11 @@ window.openZenReader = function(articleId) {
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
 };
+
+// 文章的獨立網址 (繁簡頁各自指向自己語系的 articles/<id>/)
+function articleUrl(articleId) {
+  return new URL('articles/' + articleId + '/', document.baseURI).href;
+}
 
 window.closeZenReader = function(e) {
   if (e && e.target && e.target !== document.getElementById('zen-reader-overlay') && !e.target.classList.contains('zen-reader-close')) {
