@@ -47,3 +47,12 @@ currency:
 1. **一律直角**：卡片、按鈕、輸入框無圓角。
 2. **微觸感回饋**：按鈕按下 `:active` 具備 `scale(0.97)` 縮放。
 3. **收尾朱印**：每頁結尾以 88px 的方形朱印落款。
+
+## 四、 防孤字與語意排版紀律（參考 Dao-Is-Simple-The-Open-System-Series 規範）
+1. **標題求每行等長**：所有 `h1~h4` 與區塊標題強制 `text-wrap: balance`，左右兩端對稱平衡。
+2. **段落絕不單獨留孤字**：所有段落、引言與清單強制 `text-wrap: pretty`，最後一行嚴禁只留一個字。
+3. **中文語意片段 (`.ph`)**：
+   - 中文沒有字間空白，瀏覽器預設會在隨機字元處折行（如「生／命」、「道／場」）。
+   - 對長標題、導言與表單題目採用 `<span class="ph">...</span>`（`display: inline-block`）語意切片，斷行只能發生在片段之間，跨行絕不拆散詞彙。
+4. **按鈕與價格不折斷**：
+   - 所有按鈕（`.btn-cta`、`.lang-switch-btn`）與價格（`.core-price`、`.petal-price`）強制 `white-space: nowrap` 與 `tabular-nums`，禁止符號與數字分離。
