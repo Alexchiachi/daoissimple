@@ -1,7 +1,7 @@
 # AGENTS.md · 深山的幸福道場 (The Dao Sanctuary)
 
 > 本文件是給所有 AI 助手（包括 Antigravity、Claude Code、Cursor、Copilot、Codex 及未來新對話 AI）的**單一真理源與交接手冊**。  
-> 任何接手本專案的 AI，在閱讀任何代碼前**必須先閱讀並嚴格遵守本文件與 `DESIGN.md`**。
+> 任何接手本專案的 AI，在閱讀任何代碼前**必須先閱讀並嚴格遵守本文件、`AI_HUMAN_COLLABORATION_PARADIGM.md` 與 `DESIGN.md`**。
 
 ---
 
@@ -103,6 +103,7 @@
 ```
 daoissimple/
 ├── AGENTS.md                    # 本文件：給所有 AI 的全局記憶與操作手冊
+├── AI_HUMAN_COLLABORATION_PARADIGM.md # 核心：簡家旗 × AI 協作典範與無限演化手冊
 ├── CLAUDE.md                    # AI 工具指令對齊指南
 ├── DESIGN.md                    # 視覺與美學規範事實表
 ├── CHANGELOG_AI.md              # 建置歷程、架構決策 (ADR) 與重大演進歷史
