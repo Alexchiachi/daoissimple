@@ -414,6 +414,17 @@ daoissimple/
 * **影響範圍**：`tools/build_seo.py`、`tools/check.py`、`index.html`、`zh-cn/*`、`articles/*`、`AGENTS.md`、`CHANGELOG_AI.md`
 * **自檢**：`tools/check.py` 通過，並以缺統計碼與 token 不一致的副本驗證會報錯；瀏覽器端對端無頁面錯誤。真實的 Cloudflare 回報資料需上線後才看得到，沙盒連不到 `cloudflareinsights.com`，未能驗證。
 
+
+### [2026-10-13] 核心服務價格對齊 happy 品牌站
+* **起因**：主理人指出「幸福企業諮詢 線上版」與「幸福餐桌 IP 指導」的價格與 happy 品牌站不同，要求同一服務價格一致，表達形式可以不同。
+* **對照來源**：`Alexchiachi/happy` 的 `MOTHER-UPGRADE.md` 事實表（唯一來源）：幸福諮詢顧問 NT$50,000 起；幸福餐桌 IP 授權 NT$1,000,000 起。
+* **改動**（`js/content.js`、`README.md`、`AGENTS.md`）：
+  1. 幸福企業諮詢 線上版：NT$ 68,000 起 → NT$ 50,000 起；¥15,000 起 → ¥11,000 起。
+  2. 幸福餐桌 IP 指導：NT$ 450,000 起 → NT$ 1,000,000 起；¥100,000 起 → ¥220,000 起。
+* **人民幣換算**：happy 沒有人民幣價，沿用本站既有約 4.5 比 1 的換算（68,000 對 15,000、450,000 對 100,000）後取整。
+* **未動**：生命回憶錄大傾聽與高管 Inner Flow 退修會在 happy 沒有對應項目，價格不變。若 happy 日後新增，須再對齊。
+* **維護提醒**：兩站同名服務的新台幣價格以 happy 事實表為準，改價時兩邊同時搜尋。
+
 ---
 
 ## 五、 給未來 AI 的重大修改執行規範 (Checklist for Future AI)
