@@ -179,7 +179,7 @@ def check_secrets():
         for m in re.finditer(r"AIza[0-9A-Za-z_\-]{30,}|AQ\.[0-9A-Za-z_\-]{30,}", text):
             fail(name, text, m.start(), "疑似 Google API 金鑰明文")
         for m in re.finditer(r"generativelanguage\.googleapis\.com", text):
-            fail(name, text, m.start(), "道童已移除 Gemini，不得再直連外部 AI 服務（2026-10 決議，見 CHANGELOG_AI.md）")
+            fail(name, text, m.start(), "道童已移除 Gemini，不得再直連外部 AI 服務（2026-10 決議，見 docs/archive/CHANGELOG_AI_2026-10.md）")
 
 
 def check_no_alert():
@@ -349,6 +349,107 @@ def check_seo():
             errors.append("images/og-cover.png：必須是 1200x630 的 PNG")
 
 
+def check_facts():
+    """facts.json 是價格、聯絡通道的唯一來源：content.js 與 README.md 必須一致，AGENTS.md 不寫價格。"""
+    path = ROOT / "facts.json"
+    if not path.exists():
+        errors.append("facts.json：檔案不存在")
+        return
+    try:
+        facts = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError as e:
+        errors.append(f"facts.json：JSON 無法解析（{e}）")
+        return
+    products = facts.get("products", {})
+    content = read("js/content.js")
+
+    # content.js 每個帶價格的產品
+    seen = set()
+    for m in re.finditer(r'\bid:\s*"([^"]+)"', content):
+        pid = m.group(1)
+        end = content.find("\n    }", m.start())
+        block = content[m.start(): end if end != -1 else len(content)]
+        fields = dict(re.findall(r'\b(twPrice|cnPrice|twPriceDetail|cnPriceDetail):\s*"([^"]*)"', block))
+        if not fields:
+            continue
+        seen.add(pid)
+        if pid not in products:
+            fail("js/content.js", content, m.start(), f"產品 {pid} 有價格，但 facts.json 沒有這個產品")
+            continue
+        for key, value in fields.items():
+            want = products[pid].get(key)
+            if want != value:
+                fail("js/content.js", content, m.start(), f"{pid}.{key} 為「{value}」，facts.json 為「{want}」")
+        for key in ("twPrice", "cnPrice", "twPriceDetail", "cnPriceDetail"):
+            if key in products[pid] and key not in fields:
+                fail("js/content.js", content, m.start(), f"{pid} 缺少 {key}（facts.json 有定義）")
+    for pid in sorted(set(products) - seen):
+        errors.append(f"facts.json：產品 {pid} 在 js/content.js 找不到")
+
+    # README 列出的金額必須是 facts.json 裡的金額
+    def amounts(text, sym):
+        return set(re.findall(re.escape(sym) + r"\s*([0-9][0-9,]*)", text))
+    all_values = " ".join(v for p in products.values() for v in p.values() if isinstance(v, str))
+    allowed = {"NT$": amounts(all_values, "NT$"), "¥": amounts(all_values, "¥")}
+    readme = read("README.md")
+    for sym in ("NT$", "¥"):
+        for m in re.finditer(re.escape(sym) + r"\s*([0-9][0-9,]*)", readme):
+            if m.group(1) not in allowed[sym]:
+                fail("README.md", readme, m.start(), f"金額 {sym}{m.group(1)} 不在 facts.json")
+
+    # AGENTS.md 不寫價格，避免第二個來源
+    agents = read("AGENTS.md")
+    for m in re.finditer(r"(?:NT\$|¥)\s*[0-9]", agents):
+        fail("AGENTS.md", agents, m.start(), "AGENTS.md 不寫價格，請改指向 facts.json")
+
+    # 聯絡信箱
+    email = facts.get("contact", {}).get("email")
+    m = re.search(r'\bemail:\s*"([^"]*)"', content)
+    if email and m and m.group(1) != email:
+        fail("js/content.js", content, m.start(), f"聯絡信箱「{m.group(1)}」與 facts.json「{email}」不同")
+
+
+# 判準層字詞（docs/CRITERIA_LAYER.md）。先發警告不擋部署；主理人決定改法後，可把 CRITERIA_BLOCKING 設為 True。
+CRITERIA_BLOCKING = False
+CRITERIA_PATTERNS = [
+    (re.compile(r"會讓你|將讓你|讓你重新|你會不一樣|你將會|脫胎換骨|蛻變"), "第 9、11 條：對讀者承諾將發生的改變"),
+    (re.compile(r"保證|一定會|徹底"), "第 9 條：承諾成果"),
+    (re.compile(r"重置|轉化|療癒"), "第 9、12 條：承諾成果的字眼"),
+]
+CTA_QUESTION = re.compile(r'\b(?:cta\w*|button\w*|btn\w*|label)\s*:\s*"([^"]*[？?][^"]*)"', re.I)
+
+
+def check_criteria():
+    hits = []
+
+    def scan(name, text):
+        for pattern, rule in CRITERIA_PATTERNS:
+            for m in pattern.finditer(text):
+                s = max(0, m.start() - 12)
+                snippet = text[s:m.end() + 12].replace("\n", " ")
+                hits.append(f"{name}:{line_of(text, m.start())}  {rule}：…{snippet}…")
+
+    # 長文（js/articles.js）是散文，描述性用字多，由審稿 AI 依判準層審，不做字詞掃描
+    scan("js/content.js", read("js/content.js"))
+    html = read("index.html")
+    html = re.sub(r"<!-- SEO:(\w+):START -->.*?<!-- SEO:\1:END -->", lambda m: "\n" * m.group(0).count("\n"), html, flags=re.S)
+    html_text = re.sub(r"<script\b.*?</script>|<style\b.*?</style>", lambda m: "\n" * m.group(0).count("\n"), html, flags=re.S)
+    scan("index.html", re.sub(r"<[^>]+>", " ", html_text))
+
+    # 不說服：按鈕文字不用反問句
+    for m in re.finditer(r"<(button|a)\b[^>]*>(.*?)</\1>", html_text, flags=re.S):
+        label = re.sub(r"<[^>]+>", "", m.group(2)).strip()
+        if re.search(r"[？?]", label):
+            hits.append(f"index.html:{line_of(html_text, m.start())}  不說服：按鈕用反問句：{label}")
+    content = read("js/content.js")
+    for m in CTA_QUESTION.finditer(content):
+        hits.append(f"js/content.js:{line_of(content, m.start())}  不說服：按鈕用反問句：{m.group(1)}")
+
+    target = errors if CRITERIA_BLOCKING else warnings
+    for h in hits:
+        target.append(f"判準層 {h}")
+
+
 def main():
     check_currency()
     check_titles()
@@ -359,6 +460,8 @@ def main():
     check_no_alert()
     check_zhcn_simplified()
     check_seo()
+    check_facts()
+    check_criteria()
 
     for w in warnings:
         print(f"警告  {w}")
