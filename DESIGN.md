@@ -56,3 +56,8 @@ currency:
    - 對長標題、導言與表單題目採用 `<span class="ph">...</span>`（`display: inline-block`）語意切片，斷行只能發生在片段之間，跨行絕不拆散詞彙。
 4. **按鈕與價格不折斷**：
    - 所有按鈕（`.btn-cta`、`.lang-switch-btn`）與價格（`.core-price`、`.petal-price`）強制 `white-space: nowrap` 與 `tabular-nums`，禁止符號與數字分離。
+
+## 五、 按鈕與文字細則（2026-11-20 自 AGENTS.md 移入）
+1. **按鈕**：茶色 1px 細框直角按鈕，字距 `0.2em`，文字以「 →」結尾；hover 時平滑填滿茶色。
+2. **去裝飾**：不用驚嘆號、不用 emoji、不寫促銷限時字眼。
+3. **全域排版技能**：`~/.gemini/config/skills/dao-zen-typography/SKILL.md`，本機所有倉庫一體適用。
